@@ -1,0 +1,30 @@
+<!--
+SPDX-FileCopyrightText: 2026 korbajan
+
+SPDX-License-Identifier: GPL-2.0-or-later
+-->
+
+<schemalist gettext-domain="gnome-shell-extensions">
+  <schema id="org.gnome.shell.extensions.spatial-window-navigator" path="/org/gnome/shell/extensions/spatial-window-navigator/">
+    <key name="focus-window-left" type="as">
+      <default>["&lt;Super&gt;&lt;Alt&gt;h"]</default>
+      <summary>Focus window to the left</summary>
+      <description>Keybinding to focus the nearest window to the left of the current window</description>
+    </key>
+    <key name="focus-window-right" type="as">
+      <default>["&lt;Super&gt;&lt;Alt&gt;l"]</default>
+      <summary>Focus window to the right</summary>
+      <description>Keybinding to focus the nearest window to the right of the current window</description>
+    </key>
+    <key name="focus-window-up" type="as">
+      <default>["&lt;Super&gt;&lt;Alt&gt;k"]</default>
+      <summary>Focus window above</summary>
+      <description>Keybinding to focus the nearest window above the current window</description>
+    </key>
+    <key name="focus-window-down" type="as">
+      <default>["&lt;Super&gt;&lt;Alt&gt;j"]</default>
+      <summary>Focus window below</summary>
+      <description>Keybinding to focus the nearest window below the current window</description>
+    </key>
+  </schema>
+</schemalist>

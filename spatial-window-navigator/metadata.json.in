@@ -1,0 +1,10 @@
+{
+ "extension-id": "@extension_id@",
+ "uuid": "@uuid@",
+ "settings-schema": "@gschemaname@",
+ "gettext-domain": "@gettext_domain@",
+ "name": "Spatial Window Navigator",
+ "description": "Navigate between windows on the current workspace using directional keybindings (arrow keys or vim-style hjkl).",
+ "shell-version": [ "@shell_current@" ],
+ "url": "@url@"
+}
