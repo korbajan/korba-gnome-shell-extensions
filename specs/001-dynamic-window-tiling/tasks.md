@@ -75,10 +75,10 @@ meson.build  (root — add workspace-tiling-window-manager entry)
 
 ⚠️ **Constitution III MUST**: Tests must exist and fail before implementation is written.
 
-- [ ] T056a Create `workspace-tiling-window-manager/package.json` with `jasmine` as a dev-dependency and a `"test": "jasmine"` script; create `workspace-tiling-window-manager/spec/support/jasmine.json` configuring `spec_dir: "lib"` and `spec_files: ["**/*.test.js"]`; verify `npm test` exits 0 with zero specs (empty run)
-- [ ] T056 Create `workspace-tiling-window-manager/lib/dwindleLayout.test.js` with Node/Jasmine unit tests for `DwindleLayout`: verify `addWindow()` tree structure (1, 2, 3, 4 windows), `removeWindow()` sibling promotion, `reflow()` returns correct rect dimensions summing to work area, and `_computeChildRects()` zero-gap and non-zero-gap cases
-- [ ] T057 [P] Add unit tests in `workspace-tiling-window-manager/lib/dwindleLayout.test.js` for `DwindleLayout.getNeighbour()` (returns correct window for each direction) and `moveWindow()` swap semantics (only `window` refs exchanged, rects unchanged, `_leaves` map updated)
-- [ ] T058 [P] Add unit tests in `workspace-tiling-window-manager/lib/dwindleLayout.test.js` for `DwindleLayout.resizeTile()`: ratio grows/shrinks by delta, clamps at 0.1/0.9, applies only to immediate parent boundary, returns TileRects for affected subtree only
+- [X] T056a Create `workspace-tiling-window-manager/package.json` with `jasmine` as a dev-dependency and a `"test": "jasmine"` script; create `workspace-tiling-window-manager/spec/support/jasmine.json` configuring `spec_dir: "lib"` and `spec_files: ["**/*.test.js"]`; verify `npm test` exits 0 with zero specs (empty run)
+- [X] T056 Create `workspace-tiling-window-manager/lib/dwindleLayout.test.js` with Node/Jasmine unit tests for `DwindleLayout`: verify `addWindow()` tree structure (1, 2, 3, 4 windows), `removeWindow()` sibling promotion, `reflow()` returns correct rect dimensions summing to work area, and `_computeChildRects()` zero-gap and non-zero-gap cases
+- [X] T057 [P] Add unit tests in `workspace-tiling-window-manager/lib/dwindleLayout.test.js` for `DwindleLayout.getNeighbour()` (returns correct window for each direction) and `moveWindow()` swap semantics (only `window` refs exchanged, rects unchanged, `_leaves` map updated)
+- [X] T058 [P] Add unit tests in `workspace-tiling-window-manager/lib/dwindleLayout.test.js` for `DwindleLayout.resizeTile()`: ratio grows/shrinks by delta, clamps at 0.1/0.9, applies only to immediate parent boundary, returns TileRects for affected subtree only
 
 **Checkpoint**: `npm test` runs all three test suites and all pass (Green). Coverage must not decrease on subsequent commits (Constitution III).
 
@@ -213,14 +213,14 @@ verify it floats.
 **Purpose**: Code quality, i18n, and final validation across all stories.
 
 - [ ] T052 [P] Wrap all user-visible strings in `_()` gettext calls across `workspace-tiling-window-manager/prefs.js`; verify `gettext-domain` is set in `metadata.json.in` and matches `meson.project_name()`
-- [ ] T053 [P] ESLint pass: run `npx eslint workspace-tiling-window-manager/` from repo root; fix all reported errors to zero
-- [ ] T054 [P] Prettier pass: run `npx prettier --write "workspace-tiling-window-manager/**/*.js"` from repo root; confirm no diff after formatting
+- [X] T053 [P] ESLint pass: run `npx eslint workspace-tiling-window-manager/` from repo root; fix all reported errors to zero
+- [X] T054 [P] Prettier pass: run `npx prettier --write "workspace-tiling-window-manager/**/*.js"` from repo root; confirm no diff after formatting
 - [ ] T055 Run quickstart.md end-to-end validation: build, install to user dir, enable in nested GNOME Shell; open 4 windows on tiled workspace; verify Dwindle layout, focus nav (`Super+hjkl`), window move (`Super+Shift+hjkl`), resize (`Super+Ctrl+h/l`), float toggle (`Super+Shift+Space`), and preferences all function correctly
-- [ ] T059 [P] Add debug-logging calls for "keybinding fired" events (FR-018): in `workspace-tiling-window-manager/extension.js` keybinding callbacks, add `if (this._settings.get_boolean('debug-logging')) console.log('[workspace-tiling-window-manager] keybinding fired:', keyName)` for each of the 11 registered keybindings
+- [X] T059 [P] Add debug-logging calls for "keybinding fired" events (FR-018): in `workspace-tiling-window-manager/extension.js` keybinding callbacks, add `if (this._settings.get_boolean('debug-logging')) console.log('[workspace-tiling-window-manager] keybinding fired:', keyName)` for each of the 11 registered keybindings
 - [ ] T060 [P] Manual timing verification (SC-003, SC-007): document in PR smoke-test checklist — (a) measure focus-nav latency with `Super+h` across 4 tiles and confirm <100ms subjective response, (b) confirm no perceptible latency on a non-tiling workspace with extension enabled vs disabled (SC-007 baseline)
-- [ ] T061 [P] Generate and commit i18n template: run `xgettext --from-code=UTF-8 -k_ workspace-tiling-window-manager/prefs.js workspace-tiling-window-manager/lib/keybindingRow.js -o workspace-tiling-window-manager/po/workspace-tiling-window-manager.pot` and commit the `.pot` file (Constitution Architecture Standards MUST)
-- [ ] T062 [P] Audit prefs.js interactive controls for accessible names: ensure all `Adw.SpinRow`, `Adw.ComboRow`, `Adw.SwitchRow`, `Adw.EntryRow`, and `Gtk.Button` widgets have descriptive `title` or `tooltip_text` properties set so screen readers can identify them (Constitution Principle IV MUST)
-- [ ] T063 [P] Add Meson packaging target: add a `meson dist` step or a helper script `scripts/package-extension.sh` that produces `workspace-tiling-window-manager@korbajan.github.com.zip` compatible with extensions.gnome.org submission (Constitution Architecture Standards MUST)
+- [X] T061 [P] Generate and commit i18n template: run `xgettext --from-code=UTF-8 -k_ workspace-tiling-window-manager/prefs.js workspace-tiling-window-manager/lib/keybindingRow.js -o workspace-tiling-window-manager/po/workspace-tiling-window-manager.pot` and commit the `.pot` file (Constitution Architecture Standards MUST)
+- [X] T062 [P] Audit prefs.js interactive controls for accessible names: ensure all `Adw.SpinRow`, `Adw.ComboRow`, `Adw.SwitchRow`, `Adw.EntryRow`, and `Gtk.Button` widgets have descriptive `title` or `tooltip_text` properties set so screen readers can identify them (Constitution Principle IV MUST)
+- [X] T063 [P] Add Meson packaging target: add a `meson dist` step or a helper script `scripts/package-extension.sh` that produces `workspace-tiling-window-manager@korbajan.github.com.zip` compatible with extensions.gnome.org submission (Constitution Architecture Standards MUST)
 
 ---
 

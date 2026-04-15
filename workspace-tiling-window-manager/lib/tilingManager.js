@@ -2,15 +2,15 @@
 //
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-import {createLayout} from './layoutProvider.js';
-import {WorkspaceTiler} from './workspaceTiler.js';
+import { createLayout } from './layoutProvider.js';
+import { WorkspaceTiler } from './workspaceTiler.js';
 
 /**
  * Apply an array of TileRects by moving/resizing each window.
  * @param {import('./layoutProvider.js').TileRect[]} rects
  */
 function applyRects(rects) {
-    for (const {window, x, y, width, height} of rects)
+    for (const { window, x, y, width, height } of rects)
         window.move_resize_frame(false, x, y, width, height);
 }
 
@@ -38,32 +38,32 @@ export class TilingManager {
         this._startTilersFromSettings();
 
         // React to workspace list changes in settings
-        const changedId = this._settings.connect('changed::tiling-enabled-workspaces',
-            () => this._syncTilers());
-        this._signalIds.push({obj: this._settings, id: changedId});
+        const changedId = this._settings.connect('changed::tiling-enabled-workspaces', () =>
+            this._syncTilers(),
+        );
+        this._signalIds.push({ obj: this._settings, id: changedId });
 
         // React to gap-size changes: reflow all active tilers
         const gapId = this._settings.connect('changed::gap-size', () => {
             for (const tiler of this._tilers.values()) {
-                const workspace = global.workspace_manager.get_workspace_by_index(tiler.workspaceIndex);
-                if (!workspace)
-                    continue;
+                const workspace = global.workspace_manager.get_workspace_by_index(
+                    tiler.workspaceIndex,
+                );
+                if (!workspace) continue;
                 const workArea = workspace.get_work_area_for_monitor(tiler.monitorIndex);
                 applyRects(tiler.layout.updateWorkArea(workArea));
             }
         });
-        this._signalIds.push({obj: this._settings, id: gapId});
+        this._signalIds.push({ obj: this._settings, id: gapId });
     }
 
     // ── Disable ───────────────────────────────────────────────────────────────
 
     disable() {
-        for (const {obj, id} of this._signalIds)
-            obj.disconnect(id);
+        for (const { obj, id } of this._signalIds) obj.disconnect(id);
         this._signalIds = [];
 
-        for (const tiler of this._tilers.values())
-            tiler.disable();
+        for (const tiler of this._tilers.values()) tiler.disable();
         this._tilers.clear();
     }
 
@@ -71,7 +71,8 @@ export class TilingManager {
 
     _startTilersFromSettings() {
         const n = global.workspace_manager.get_n_workspaces();
-        const indices = this._settings.get_value('tiling-enabled-workspaces')
+        const indices = this._settings
+            .get_value('tiling-enabled-workspaces')
             .deepUnpack()
             .filter(i => i >= 0 && i < n);
 
@@ -80,9 +81,13 @@ export class TilingManager {
         for (const wsIdx of indices) {
             for (let mon = 0; mon < nMonitors; mon++) {
                 const key = `${wsIdx}:${mon}`;
-                if (this._tilers.has(key))
-                    continue;
-                const tiler = new WorkspaceTiler(wsIdx, mon, createLayout('dwindle'), this._settings);
+                if (this._tilers.has(key)) continue;
+                const tiler = new WorkspaceTiler(
+                    wsIdx,
+                    mon,
+                    createLayout('dwindle'),
+                    this._settings,
+                );
                 tiler.enable();
                 this._tilers.set(key, tiler);
             }
@@ -92,12 +97,13 @@ export class TilingManager {
     _syncTilers() {
         const n = global.workspace_manager.get_n_workspaces();
         const desired = new Set(
-            this._settings.get_value('tiling-enabled-workspaces')
+            this._settings
+                .get_value('tiling-enabled-workspaces')
                 .deepUnpack()
                 .filter(i => i >= 0 && i < n)
                 .flatMap(wsIdx => {
                     const nMon = global.display.get_n_monitors();
-                    return Array.from({length: nMon}, (_, m) => `${wsIdx}:${m}`);
+                    return Array.from({ length: nMon }, (_, m) => `${wsIdx}:${m}`);
                 }),
         );
 
@@ -111,8 +117,7 @@ export class TilingManager {
 
         // Add new tilers
         for (const key of desired) {
-            if (this._tilers.has(key))
-                continue;
+            if (this._tilers.has(key)) continue;
             const [wsIdx, mon] = key.split(':').map(Number);
             const tiler = new WorkspaceTiler(wsIdx, mon, createLayout('dwindle'), this._settings);
             tiler.enable();
@@ -127,12 +132,10 @@ export class TilingManager {
      */
     _focusDirection(direction) {
         const focused = global.display.focus_window;
-        if (!focused)
-            return;
+        if (!focused) return;
 
         const tiler = this._tilerForWindow(focused);
-        if (!tiler)
-            return;
+        if (!tiler) return;
 
         const neighbour = tiler.layout.getNeighbour(focused, direction);
         neighbour?.activate(global.get_current_time());
@@ -143,12 +146,10 @@ export class TilingManager {
      */
     _moveWindowDirection(direction) {
         const focused = global.display.focus_window;
-        if (!focused)
-            return;
+        if (!focused) return;
 
         const tiler = this._tilerForWindow(focused);
-        if (!tiler)
-            return;
+        if (!tiler) return;
 
         applyRects(tiler.layout.moveWindow(focused, direction));
     }
@@ -158,29 +159,23 @@ export class TilingManager {
      */
     _resizeTile(direction) {
         const focused = global.display.focus_window;
-        if (!focused)
-            return;
+        if (!focused) return;
 
         const tiler = this._tilerForWindow(focused);
-        if (!tiler)
-            return;
+        if (!tiler) return;
 
         applyRects(tiler.layout.resizeTile(focused, direction, 0.05));
     }
 
     _toggleFloat() {
         const focused = global.display.focus_window;
-        if (!focused)
-            return;
+        if (!focused) return;
 
         const tiler = this._tilerForWindow(focused);
-        if (!tiler)
-            return;
+        if (!tiler) return;
 
-        if (tiler.floatingWindows.has(focused))
-            tiler.sinkWindow(focused);
-        else
-            tiler.floatWindow(focused);
+        if (tiler.floatingWindows.has(focused)) tiler.sinkWindow(focused);
+        else tiler.floatWindow(focused);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -193,8 +188,7 @@ export class TilingManager {
     _tilerForWindow(window) {
         const wsIdx = window.get_workspace()?.index();
         const mon = window.get_monitor();
-        if (wsIdx == null)
-            return null;
+        if (wsIdx === null || wsIdx === undefined) return null;
         return this._tilers.get(`${wsIdx}:${mon}`) ?? null;
     }
 }

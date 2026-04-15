@@ -162,7 +162,6 @@ export function registerLayout(id, factory) {
  */
 export function createLayout(id) {
     const factory = LayoutRegistry.get(id);
-    if (!factory)
-        throw new Error(`Unknown layout id: ${id}`);
+    if (!factory) throw new Error(`Unknown layout id: ${id}`);
     return factory();
 }

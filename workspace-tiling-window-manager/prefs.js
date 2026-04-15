@@ -8,10 +8,12 @@ import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 
-import {ExtensionPreferences, gettext as _} from
-    'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import {
+    ExtensionPreferences,
+    gettext as _,
+} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-import {KeybindingRow} from './lib/keybindingRow.js';
+import { KeybindingRow } from './lib/keybindingRow.js';
 
 export default class WorkspaceTilingWindowManagerPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
@@ -28,7 +30,7 @@ export default class WorkspaceTilingWindowManagerPreferences extends ExtensionPr
 
 function _getNumWorkspaces() {
     try {
-        const s = new Gio.Settings({schema_id: 'org.gnome.desktop.wm.preferences'});
+        const s = new Gio.Settings({ schema_id: 'org.gnome.desktop.wm.preferences' });
         return s.get_int('num-workspaces');
     } catch (_e) {
         return 4;
@@ -58,7 +60,7 @@ function _buildWorkspacesPage(settings) {
         settings.set_value('tiling-enabled-workspaces', new GLib.Variant('ai', cleaned));
 
     for (let i = 0; i < nWorkspaces; i++) {
-        const row = new Adw.SwitchRow({title: _('Workspace %d').format(i + 1)});
+        const row = new Adw.SwitchRow({ title: _('Workspace %d').format(i + 1) });
         row.set_active(settings.get_value('tiling-enabled-workspaces').deepUnpack().includes(i));
 
         row.connect('notify::active', () => {
@@ -67,8 +69,7 @@ function _buildWorkspacesPage(settings) {
             let updated;
             if (active)
                 updated = indices.includes(i) ? indices : [...indices, i].sort((a, b) => a - b);
-            else
-                updated = indices.filter(x => x !== i);
+            else updated = indices.filter(x => x !== i);
             settings.set_value('tiling-enabled-workspaces', new GLib.Variant('ai', updated));
         });
 
@@ -86,35 +87,35 @@ function _buildShortcutsPage(settings) {
         icon_name: 'input-keyboard-symbolic',
     });
 
-    const focusGroup = new Adw.PreferencesGroup({title: _('Focus')});
+    const focusGroup = new Adw.PreferencesGroup({ title: _('Focus') });
     for (const [key, title] of [
-        ['keybind-focus-left',  _('Focus Left')],
+        ['keybind-focus-left', _('Focus Left')],
         ['keybind-focus-right', _('Focus Right')],
-        ['keybind-focus-up',    _('Focus Up')],
-        ['keybind-focus-down',  _('Focus Down')],
+        ['keybind-focus-up', _('Focus Up')],
+        ['keybind-focus-down', _('Focus Down')],
     ])
         focusGroup.add(new KeybindingRow(title, '', settings, key));
     page.add(focusGroup);
 
-    const moveGroup = new Adw.PreferencesGroup({title: _('Move Window')});
+    const moveGroup = new Adw.PreferencesGroup({ title: _('Move Window') });
     for (const [key, title] of [
-        ['keybind-move-left',  _('Move Left')],
+        ['keybind-move-left', _('Move Left')],
         ['keybind-move-right', _('Move Right')],
-        ['keybind-move-up',    _('Move Up')],
-        ['keybind-move-down',  _('Move Down')],
+        ['keybind-move-up', _('Move Up')],
+        ['keybind-move-down', _('Move Down')],
     ])
         moveGroup.add(new KeybindingRow(title, '', settings, key));
     page.add(moveGroup);
 
-    const resizeGroup = new Adw.PreferencesGroup({title: _('Resize')});
+    const resizeGroup = new Adw.PreferencesGroup({ title: _('Resize') });
     for (const [key, title] of [
         ['keybind-resize-shrink', _('Shrink Tile')],
-        ['keybind-resize-grow',   _('Grow Tile')],
+        ['keybind-resize-grow', _('Grow Tile')],
     ])
         resizeGroup.add(new KeybindingRow(title, '', settings, key));
     page.add(resizeGroup);
 
-    const floatGroup = new Adw.PreferencesGroup({title: _('Floating')});
+    const floatGroup = new Adw.PreferencesGroup({ title: _('Floating') });
     floatGroup.add(new KeybindingRow(_('Toggle Floating'), '', settings, 'keybind-toggle-float'));
     page.add(floatGroup);
 
@@ -129,7 +130,7 @@ function _buildAppearancePage(settings) {
         icon_name: 'preferences-desktop-display-symbolic',
     });
 
-    const group = new Adw.PreferencesGroup({title: _('Layout')});
+    const group = new Adw.PreferencesGroup({ title: _('Layout') });
     page.add(group);
 
     const gapRow = new Adw.SpinRow({
@@ -148,7 +149,7 @@ function _buildAppearancePage(settings) {
     const axisRow = new Adw.ComboRow({
         title: _('Initial Split Axis'),
         subtitle: _('Direction of the first split when a second window opens'),
-        model: new Gtk.StringList({strings: [_('Horizontal'), _('Vertical')]}),
+        model: new Gtk.StringList({ strings: [_('Horizontal'), _('Vertical')] }),
     });
     const syncAxis = () => {
         axisRow.set_selected(settings.get_string('initial-split-axis') === 'vertical' ? 1 : 0);
@@ -156,8 +157,10 @@ function _buildAppearancePage(settings) {
     syncAxis();
     settings.connect('changed::initial-split-axis', syncAxis);
     axisRow.connect('notify::selected', () => {
-        settings.set_string('initial-split-axis',
-            axisRow.get_selected() === 1 ? 'vertical' : 'horizontal');
+        settings.set_string(
+            'initial-split-axis',
+            axisRow.get_selected() === 1 ? 'vertical' : 'horizontal',
+        );
     });
     group.add(axisRow);
 
@@ -217,13 +220,12 @@ class FloatRulesGroup extends Adw.PreferencesGroup {
     }
 
     _rebuild() {
-        for (const row of this._rows)
-            this.remove(row);
+        for (const row of this._rows) this.remove(row);
         this._rows = [];
 
         const classes = this._settings.get_strv('float-window-classes');
         for (const cls of classes) {
-            const row = new Adw.ActionRow({title: cls});
+            const row = new Adw.ActionRow({ title: cls });
             const delBtn = new Gtk.Button({
                 icon_name: 'list-remove-symbolic',
                 valign: Gtk.Align.CENTER,
@@ -232,7 +234,8 @@ class FloatRulesGroup extends Adw.PreferencesGroup {
             });
             const captured = cls;
             delBtn.connect('clicked', () => {
-                const updated = this._settings.get_strv('float-window-classes')
+                const updated = this._settings
+                    .get_strv('float-window-classes')
                     .filter(c => c !== captured);
                 this._settings.set_strv('float-window-classes', updated);
             });
@@ -247,8 +250,7 @@ class FloatRulesGroup extends Adw.PreferencesGroup {
         });
         entryRow.connect('apply', () => {
             const val = entryRow.get_text().trim();
-            if (!val)
-                return;
+            if (!val) return;
             const current = this._settings.get_strv('float-window-classes');
             if (!current.includes(val))
                 this._settings.set_strv('float-window-classes', [...current, val]);

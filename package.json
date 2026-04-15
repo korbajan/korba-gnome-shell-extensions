@@ -1,0 +1,15 @@
+{
+  "name": "korba-gnome-extensions",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.0"
+  },
+  "scripts": {
+    "lint": "eslint workspace-tiling-window-manager/ spatial-window-navigator/",
+    "lint:fix": "eslint --fix workspace-tiling-window-manager/ spatial-window-navigator/",
+    "format": "prettier --write \"workspace-tiling-window-manager/**/*.js\" \"spatial-window-navigator/**/*.js\"",
+    "format:check": "prettier --check \"workspace-tiling-window-manager/**/*.js\" \"spatial-window-navigator/**/*.js\""
+  }
+}

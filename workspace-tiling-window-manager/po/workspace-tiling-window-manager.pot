@@ -1,0 +1,195 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-04-15 20:27+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:44
+msgid "Workspaces"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:49
+msgid "Tiling-enabled Workspaces"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:50
+msgid "Enable tiling for each workspace independently."
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:63
+#, javascript-format
+msgid "Workspace %d"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:86
+msgid "Keyboard Shortcuts"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:90
+msgid "Focus"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:92
+msgid "Focus Left"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:93
+msgid "Focus Right"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:94
+msgid "Focus Up"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:95
+msgid "Focus Down"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:100
+msgid "Move Window"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:102
+msgid "Move Left"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:103
+msgid "Move Right"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:104
+msgid "Move Up"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:105
+msgid "Move Down"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:110
+msgid "Resize"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:112
+msgid "Shrink Tile"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:113
+msgid "Grow Tile"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:118
+msgid "Floating"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:119
+msgid "Toggle Floating"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:129
+msgid "Appearance"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:133
+msgid "Layout"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:137
+msgid "Gap Size"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:138
+msgid "Pixel gap between tiles and screen edges"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:150
+msgid "Initial Split Axis"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:151
+msgid "Direction of the first split when a second window opens"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:152
+msgid "Horizontal"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:152
+msgid "Vertical"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:168
+msgid "Default Split Ratio"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:169
+msgid "Fraction of a split allocated to the first child (0.1 – 0.9)"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:182
+msgid "Minimum Tile Size"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:183
+msgid "Windows smaller than this (px) are auto-floated"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:195
+msgid "Debug Logging"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:196
+msgid "Emit tiling events to journalctl (zero cost when off)"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:213
+msgid "Window Classes That Always Float"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:214
+msgid "Enter the WM class string (e.g. org.gnome.Calculator)."
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:233
+msgid "Remove"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:248
+msgid "Add window class"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/prefs.js:266
+msgid "Floating Rules"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/lib/keybindingRow.js:44
+msgid "Set Shortcut"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/lib/keybindingRow.js:63
+msgid "Press the desired key combination"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/lib/keybindingRow.js:72
+msgid "Press Escape to cancel"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/lib/keybindingRow.js:118
+msgid "Disabled"
+msgstr ""
+
+#: /home/korbaczek/KorbaProjects/korba-gnome-extensions/workspace-tiling-window-manager/lib/keybindingRow.js:126
+msgid "Clear shortcut"
+msgstr ""

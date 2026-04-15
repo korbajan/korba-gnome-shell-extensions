@@ -1,8 +1,15 @@
 // SPDX-FileCopyrightText: 2026 korbajan
 //
 // SPDX-License-Identifier: GPL-2.0-or-later
+//
+// NOTE: This file exceeds the 400-line SHOULD threshold (Constitution §II).
+// Justification: TileLeaf, SplitContainer, and DwindleLayout are tightly
+// coupled — the tree traversal algorithms (reflow, getNeighbour, resizeTile)
+// require direct access to node internals and cannot be cleanly separated
+// without exposing private state.  Splitting across files would reduce
+// clarity without reducing complexity.
 
-import {LayoutProvider} from './layoutProvider.js';
+import { LayoutProvider } from './layoutProvider.js';
 
 /**
  * A leaf node in the Dwindle binary split-tree.
@@ -80,7 +87,7 @@ export class DwindleLayout extends LayoutProvider {
     init(settings, workArea) {
         this._settings = settings;
         const axis = settings.get_string('initial-split-axis');
-        this._initialAxis = (axis === 'vertical') ? 'vertical' : 'horizontal';
+        this._initialAxis = axis === 'vertical' ? 'vertical' : 'horizontal';
         this._gapSize = settings.get_uint('gap-size');
         this._workArea = {
             x: workArea.x,
@@ -102,8 +109,7 @@ export class DwindleLayout extends LayoutProvider {
             height: workArea.height,
         };
         // Refresh gap-size in case it changed
-        if (this._settings)
-            this._gapSize = this._settings.get_uint('gap-size');
+        if (this._settings) this._gapSize = this._settings.get_uint('gap-size');
         return this.reflow();
     }
 
@@ -114,7 +120,7 @@ export class DwindleLayout extends LayoutProvider {
      * @param {SplitContainer} container
      */
     _computeChildRects(container) {
-        const {x, y, width, height} = container.rect;
+        const { x, y, width, height } = container.rect;
         const gap = this._gapSize;
         const half = Math.floor(gap / 2);
 
@@ -158,7 +164,15 @@ export class DwindleLayout extends LayoutProvider {
     _reflowSubtree(node, rect) {
         node.rect = rect;
         if (node instanceof TileLeaf) {
-            return [{window: node.window, x: rect.x, y: rect.y, width: rect.width, height: rect.height}];
+            return [
+                {
+                    window: node.window,
+                    x: rect.x,
+                    y: rect.y,
+                    width: rect.width,
+                    height: rect.height,
+                },
+            ];
         }
         // SplitContainer
         this._computeChildRects(node);
@@ -173,8 +187,7 @@ export class DwindleLayout extends LayoutProvider {
      * @returns {import('./layoutProvider.js').TileRect[]}
      */
     reflow() {
-        if (!this._root || !this._workArea)
-            return [];
+        if (!this._root || !this._workArea) return [];
 
         const g = this._gapSize;
         const rootRect = {
@@ -194,7 +207,7 @@ export class DwindleLayout extends LayoutProvider {
      * @returns {import('./layoutProvider.js').TileRect[]}
      */
     addWindow(window) {
-        const placeholderRect = {x: 0, y: 0, width: 0, height: 0};
+        const placeholderRect = { x: 0, y: 0, width: 0, height: 0 };
         const newLeaf = new TileLeaf(window, placeholderRect);
 
         if (!this._root) {
@@ -207,9 +220,12 @@ export class DwindleLayout extends LayoutProvider {
         // Determine the direction for the new split: perpendicular to parent
         const splitTarget = this._lastLeaf;
         const parentDir = splitTarget.parent ? splitTarget.parent.direction : null;
-        const newDir = parentDir === 'horizontal' ? 'vertical'
-            : parentDir === 'vertical' ? 'horizontal'
-            : this._initialAxis;
+        const newDir =
+            parentDir === 'horizontal'
+                ? 'vertical'
+                : parentDir === 'vertical'
+                  ? 'horizontal'
+                  : this._initialAxis;
 
         // Replace splitTarget in the tree with a new SplitContainer
         const container = new SplitContainer(
@@ -228,10 +244,8 @@ export class DwindleLayout extends LayoutProvider {
             this._root = container;
         } else {
             const p = container.parent;
-            if (p.first === splitTarget)
-                p.first = container;
-            else
-                p.second = container;
+            if (p.first === splitTarget) p.first = container;
+            else p.second = container;
         }
 
         this._leaves.set(window, newLeaf);
@@ -245,8 +259,7 @@ export class DwindleLayout extends LayoutProvider {
      */
     removeWindow(window) {
         const leaf = this._leaves.get(window);
-        if (!leaf)
-            return this.reflow();
+        if (!leaf) return this.reflow();
 
         this._leaves.delete(window);
 
@@ -265,10 +278,8 @@ export class DwindleLayout extends LayoutProvider {
             this._root = sibling;
         } else {
             const gp = parent.parent;
-            if (gp.first === parent)
-                gp.first = sibling;
-            else
-                gp.second = sibling;
+            if (gp.first === parent) gp.first = sibling;
+            else gp.second = sibling;
         }
 
         // Update _lastLeaf: pick the last leaf in insertion order still present
@@ -294,8 +305,7 @@ export class DwindleLayout extends LayoutProvider {
         let bestScore = Infinity;
 
         for (const [win] of this._leaves) {
-            if (win === fromWindow)
-                continue;
+            if (win === fromWindow) continue;
 
             const r = win.get_frame_rect();
             const cx = r.x + r.width / 2;
@@ -304,18 +314,20 @@ export class DwindleLayout extends LayoutProvider {
             const dy = cy - fcy;
 
             const inDir =
-                direction === 'left'  ? dx < 0 :
-                direction === 'right' ? dx > 0 :
-                direction === 'up'    ? dy < 0 :
-                /* down */              dy > 0;
+                direction === 'left'
+                    ? dx < 0
+                    : direction === 'right'
+                      ? dx > 0
+                      : direction === 'up'
+                        ? dy < 0
+                        : /* down */ dy > 0;
 
-            if (!inDir)
-                continue;
+            if (!inDir) continue;
 
-            const primary = (direction === 'left' || direction === 'right')
-                ? Math.abs(dx) : Math.abs(dy);
-            const cross = (direction === 'left' || direction === 'right')
-                ? Math.abs(dy) : Math.abs(dx);
+            const primary =
+                direction === 'left' || direction === 'right' ? Math.abs(dx) : Math.abs(dy);
+            const cross =
+                direction === 'left' || direction === 'right' ? Math.abs(dy) : Math.abs(dx);
 
             const score = primary + cross * 0.3;
             if (score < bestScore) {
@@ -337,8 +349,7 @@ export class DwindleLayout extends LayoutProvider {
      */
     moveWindow(window, direction) {
         const neighbour = this.getNeighbour(window, direction);
-        if (!neighbour)
-            return [];
+        if (!neighbour) return [];
 
         const leafA = this._leaves.get(window);
         const leafB = this._leaves.get(neighbour);
@@ -352,8 +363,20 @@ export class DwindleLayout extends LayoutProvider {
         this._leaves.set(neighbour, leafA);
 
         return [
-            {window: neighbour, x: leafA.rect.x, y: leafA.rect.y, width: leafA.rect.width, height: leafA.rect.height},
-            {window, x: leafB.rect.x, y: leafB.rect.y, width: leafB.rect.width, height: leafB.rect.height},
+            {
+                window: neighbour,
+                x: leafA.rect.x,
+                y: leafA.rect.y,
+                width: leafA.rect.width,
+                height: leafA.rect.height,
+            },
+            {
+                window,
+                x: leafB.rect.x,
+                y: leafB.rect.y,
+                width: leafB.rect.width,
+                height: leafB.rect.height,
+            },
         ];
     }
 
@@ -365,22 +388,20 @@ export class DwindleLayout extends LayoutProvider {
      */
     resizeTile(window, direction, delta) {
         const leaf = this._leaves.get(window);
-        if (!leaf || !leaf.parent)
-            return [];
+        if (!leaf || !leaf.parent) return [];
 
         const container = leaf.parent;
         const isFirst = container.first === leaf;
 
-        if (direction === 'grow')
-            container.splitRatio += isFirst ? delta : -delta;
-        else
-            container.splitRatio += isFirst ? -delta : delta;
+        if (direction === 'grow') container.splitRatio += isFirst ? delta : -delta;
+        else container.splitRatio += isFirst ? -delta : delta;
 
         container.splitRatio = Math.max(0.1, Math.min(0.9, container.splitRatio));
 
         this._computeChildRects(container);
-        return this._reflowSubtree(container.first, container.first.rect)
-            .concat(this._reflowSubtree(container.second, container.second.rect));
+        return this._reflowSubtree(container.first, container.first.rect).concat(
+            this._reflowSubtree(container.second, container.second.rect),
+        );
     }
 
     /** @param {import('gi://Meta').Window} window */
