@@ -68,45 +68,49 @@ Vertical split:
 
 ---
 
-### DwindleTree
+### DwindleLayout extends LayoutProvider
 
 Manages the binary split-tree for one `(workspaceIndex, monitorIndex)` tiling unit.
+Implements the `LayoutProvider` interface (see `contracts/layout-provider.md`).
 
 | Field | Type | Description |
 |---|---|---|
-| `root` | `TileNode \| null` | Root of the tree; null when no windows are tiled |
-| `workArea` | `{x, y, width, height}` | Monitor work area (excluding panels) |
-| `leaves` | `Map<Meta.Window, TileLeaf>` | Window → leaf lookup for O(1) access |
-| `lastLeaf` | `TileLeaf \| null` | Most recently inserted leaf (next split target) |
-| `initialAxis` | `'horizontal' \| 'vertical'` | First split direction (from settings) |
-| `gapSize` | `number` | Pixel gap applied between tiles (from settings) |
+| `_root` | `TileNode \| null` | Root of the tree; null when no windows are tiled |
+| `_workArea` | `{x, y, width, height}` | Monitor work area (excluding panels) |
+| `_leaves` | `Map<Meta.Window, TileLeaf>` | Window → leaf lookup for O(1) access |
+| `_lastLeaf` | `TileLeaf \| null` | Most recently inserted leaf (next split target) |
+| `_initialAxis` | `'horizontal' \| 'vertical'` | First split direction (from settings) |
+| `_gapSize` | `number` | Pixel gap applied between tiles (from settings) |
 
-**Key operations**:
+**Key operations** (all return `TileRect[]` for the caller to apply via `move_resize_frame`):
 
-- `insert(window)` — Find `lastLeaf`, wrap it and the new window in a new
-  `SplitContainer`, recompute rects, apply geometry to all affected windows.
-- `remove(window)` — Find leaf, replace parent container with sibling, recompute
-  rects, apply geometry to remaining windows.
-- `moveFocus(direction)` — Find nearest tile by geometry (centre-point distance in
-  requested direction; same algorithm as `spatial-window-navigator`), call
-  `window.activate(global.get_current_time())`. Reads current focus from
-  `global.display.focus_window` — no separate extension-tracked cursor.
-- `moveWindow(window, direction)` — Find nearest tile by geometry (same centre-point
-  algorithm as `moveFocus`). **Swap only the `window` references** in the two
-  `TileLeaf` nodes — rects and `splitRatio` values remain unchanged. Apply geometry
-  to both swapped windows. The `LayoutProvider` interface encapsulates this algorithm
-  to allow future replacement with a tree-topology-based approach.
-- `resize(window, direction, delta)` — Adjust `splitRatio` on parent container,
-  recompute rects, apply geometry.
-- `computeRect(node)` — Recursive rect calculation from root down.
-- `applyLayout()` — Call `window.move_resize_frame` for every leaf.
+- `addWindow(window)` — Find `_lastLeaf`, wrap it and the new window in a new
+  `SplitContainer` with perpendicular axis, recompute rects, return `TileRect[]`.
+- `removeWindow(window)` — Find leaf, promote sibling to replace parent container,
+  recompute rects, return `TileRect[]` for remaining windows.
+- `getNeighbour(fromWindow, direction)` — Find nearest tile by geometry (centre-point
+  distance in requested direction; same algorithm as `spatial-window-navigator`).
+  Returns the neighbour `Meta.Window` or `null`. This is the designated seam for a
+  future tree-topology-based replacement.
+- `moveWindow(window, direction)` — Find neighbour via `getNeighbour`. **Swap only the
+  `window` references** in the two `TileLeaf` nodes — rects and `splitRatio` values
+  remain unchanged. Returns `TileRect[]` for the two affected windows only.
+- `resizeTile(window, direction, delta)` — Adjust `splitRatio` on parent container,
+  clamp to `[0.1, 0.9]`, recompute child rects, return `TileRect[]` for affected subtree.
+- `reflow()` — Apply outer gap to `_workArea` and recursively recompute all rects;
+  return full `TileRect[]`.
+
+> **Note**: Focus operations (`getNeighbour` result → `window.activate(...)`) are performed
+> by `TilingManager._focusDirection()`, not by `DwindleLayout` itself.  `DwindleLayout`
+> only returns data — it never calls `window.activate()` or `move_resize_frame()` directly.
 
 ---
 
 ### WorkspaceTiler
 
 Manages tiling for one `(workspaceIndex, monitorIndex)` pair.
-Owns a `DwindleTree` and the lifecycle signal connections for that context.
+Owns a `DwindleLayout` (via the `LayoutProvider` interface) and all lifecycle signal
+connections for that context.
 
 | Field | Type | Description |
 |---|---|---|
@@ -114,8 +118,8 @@ Owns a `DwindleTree` and the lifecycle signal connections for that context.
 | `monitorIndex` | `number` | Physical monitor index |
 | `layout` | `LayoutProvider` | Active layout strategy (v1: always `DwindleLayout`) |
 | `floatingWindows` | `Set<Meta.Window>` | Windows excluded from the tile tree |
-| `savedRects` | `Map<Meta.Window, Rect>` | Pre-tiling rects for restore on disable |
-| `signalIds` | `number[]` | Signal connection IDs for cleanup in `destroy()` |
+| `savedRects` | `Map<Meta.Window, Rect>` | Pre-tiling rects for restore on `disable()` |
+| `_signalIds` | `Array<{obj, id}>` | Signal connection objects for cleanup in `disable()` |
 
 ---
 
@@ -172,20 +176,20 @@ opened
   └─► [shouldTile?]
         ├─ NO  ──► FloatingWindows set (unmanaged)
         └─ YES ──► first-frame signal
-                      └─► DwindleTree.insert(window)
+                      └─► DwindleLayout.insert(window)
                             └─► geometry applied ──► TILED
 
 TILED
-  ├─► user toggle-float ──► DwindleTree.remove(window) ──► FloatingWindows set ──► FLOATING
-  ├─► window fullscreen ──► DwindleTree.remove(window) ──► FULLSCREEN (saved in savedRects)
-  └─► window closed     ──► DwindleTree.remove(window) ──► (gone)
+  ├─► user toggle-float ──► DwindleLayout.remove(window) ──► FloatingWindows set ──► FLOATING
+  ├─► window fullscreen ──► DwindleLayout.remove(window) ──► FULLSCREEN (saved in savedRects)
+  └─► window closed     ──► DwindleLayout.remove(window) ──► (gone)
 
-FLOATING ──► user toggle-float ──► DwindleTree.insert(window) ──► TILED
+FLOATING ──► user toggle-float ──► DwindleLayout.insert(window) ──► TILED
 
-FULLSCREEN ──► exit fullscreen ──► DwindleTree.insert(window) ──► TILED
+FULLSCREEN ──► exit fullscreen ──► DwindleLayout.insert(window) ──► TILED
 
 tiling disabled for workspace
-  └─► all TILED windows ──► DwindleTree cleared, savedRects restored ──► FREE
+  └─► all TILED windows ──► DwindleLayout cleared, savedRects restored ──► FREE
 ```
 
 ### Workspace tiler lifecycle
@@ -193,7 +197,7 @@ tiling disabled for workspace
 ```
 settings toggle ON
   └─► WorkspaceTiler created for (wsIndex, monitorIndex)
-        └─► existing windows collected and inserted into DwindleTree
+        └─► existing windows collected and inserted into DwindleLayout
               └─► layout applied ──► ACTIVE
 
 ACTIVE ──► settings toggle OFF

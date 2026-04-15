@@ -7,7 +7,7 @@ description: "Task list for Dynamic Window Tiling (Dwindle)"
 **Input**: Design documents from `specs/001-dynamic-window-tiling/`
 **Prerequisites**: plan.md ✅ spec.md ✅ research.md ✅ data-model.md ✅ contracts/ ✅ quickstart.md ✅
 
-**Tests**: Not explicitly requested — no test tasks generated.
+**Tests**: Unit tests added in Phase 2.5 (T056–T058) per Constitution Principle III.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation
 and testing of each story.
@@ -59,12 +59,27 @@ meson.build  (root — add workspace-tiling-window-manager entry)
 ⚠️ **CRITICAL**: No user story work begins until this phase is complete.
 
 - [ ] T006 Implement `workspace-tiling-window-manager/lib/layoutProvider.js`: export abstract `LayoutProvider` class with all methods from `contracts/layout-provider.md` (init, updateWorkArea, addWindow, removeWindow, getNeighbour, moveWindow, resizeTile, reflow, hasWindow, getManagedWindows, destroy, id getter — each throws `Error('not implemented')`); export `LayoutRegistry` Map and `registerLayout(id, factory)` / `createLayout(id)` functions
-- [ ] T007 [P] Extract `KeyCaptureWindow` and `KeybindingRow` classes verbatim from `spatial-window-navigator/prefs.js` lines 12–138 into `workspace-tiling-window-manager/lib/keybindingRow.js` as named exports; update `gi://` and `resource://` imports to be self-contained
+- [ ] T007 [P] Extract `KeyCaptureWindow` and `KeybindingRow` classes from `spatial-window-navigator/prefs.js` lines 12–138 into `workspace-tiling-window-manager/lib/keybindingRow.js` and adapt as named exports; update `gi://` and `resource://` imports to be self-contained
 - [ ] T008 [P] Create `workspace-tiling-window-manager/lib/workspaceTiler.js`: export `WorkspaceTiler` class with constructor `(workspaceIndex, monitorIndex, layout, settings)`, fields `floatingWindows` (Set), `savedRects` (Map), `_signalIds` (Array), and stub `enable()`, `disable()`, `destroy()` methods that do nothing yet
 - [ ] T009 [P] Create `workspace-tiling-window-manager/lib/tilingManager.js`: export `TilingManager` class with constructor `(settings)`, fields `_tilers` (Map keyed `"wsIdx:monIdx"`), `_signalIds` (Array), and stub `enable()` / `disable()` methods
 - [ ] T010 Create `workspace-tiling-window-manager/extension.js`: import `Extension` from `resource:///org/gnome/shell/extensions/extension.js`; import `TilingManager` from `./lib/tilingManager.js`; import `registerLayout` from `./lib/layoutProvider.js`; import `DwindleLayout` from `./lib/dwindleLayout.js`; export default class calling `registerLayout('dwindle', () => new DwindleLayout())` then `this._manager = new TilingManager(this.getSettings())` and `this._manager.enable()` in `enable()`; call `this._manager.disable()` and `this._manager = null` in `disable()`
 
 **Checkpoint**: Extension loads without errors in nested GNOME Shell — `gnome-extensions enable workspace-tiling-window-manager@korbajan.github.com` produces no journal errors.
+
+---
+
+## Phase 2.5: Unit Tests (Constitution III — Test-First)
+
+**Purpose**: Pure-JS unit tests for `DwindleLayout` and `WorkspaceTiler` that MUST be written
+(Red phase) before Phase 3 implementation code is finalised (Green phase).
+
+⚠️ **Constitution III MUST**: Tests must exist and fail before implementation is written.
+
+- [ ] T056 Create `workspace-tiling-window-manager/lib/dwindleLayout.test.js` with Node/Jasmine unit tests for `DwindleLayout`: verify `addWindow()` tree structure (1, 2, 3, 4 windows), `removeWindow()` sibling promotion, `reflow()` returns correct rect dimensions summing to work area, and `_computeChildRects()` zero-gap and non-zero-gap cases
+- [ ] T057 [P] Add unit tests in `workspace-tiling-window-manager/lib/dwindleLayout.test.js` for `DwindleLayout.getNeighbour()` (returns correct window for each direction) and `moveWindow()` swap semantics (only `window` refs exchanged, rects unchanged, `_leaves` map updated)
+- [ ] T058 [P] Add unit tests in `workspace-tiling-window-manager/lib/dwindleLayout.test.js` for `DwindleLayout.resizeTile()`: ratio grows/shrinks by delta, clamps at 0.1/0.9, applies only to immediate parent boundary, returns TileRects for affected subtree only
+
+**Checkpoint**: `npm test` runs all three test suites and all pass (Green). Coverage must not decrease on subsequent commits (Constitution III).
 
 ---
 
@@ -93,7 +108,7 @@ return to their original positions and sizes.
 - [ ] T020 [US1] Implement `WorkspaceTiler.enable()` initial collection in `workspace-tiling-window-manager/lib/workspaceTiler.js`: get workspace via `global.workspace_manager.get_workspace_by_index(workspaceIndex)`; get `workArea = workspace.get_work_area_for_monitor(monitorIndex)`; call `this.layout.init(settings, workArea)`; collect existing windows via `workspace.list_windows()` filtered by monitor and `shouldTile()`; save each window's `get_frame_rect()` in `savedRects`; for each window call `layout.addWindow(window)` and apply returned `TileRect[]` via `window.move_resize_frame(false, x, y, w, h)`
 - [ ] T021 [US1] Implement `window-created` signal handler in `WorkspaceTiler.enable()` in `workspace-tiling-window-manager/lib/workspaceTiler.js`: connect to `global.display`'s `window-created`; for windows on this workspace+monitor passing `shouldTile()` and not in `floatingWindows`, use `first-frame` guard (connect `window.get_compositor_private()` `first-frame`, disconnect after firing) before calling `layout.addWindow()` and applying `TileRect[]`; store signal ID in `_signalIds`
 - [ ] T022 [US1] Implement `window-removed` signal handler in `WorkspaceTiler.enable()` in `workspace-tiling-window-manager/lib/workspaceTiler.js`: connect to the `Meta.Workspace`'s `window-removed` signal; if window is managed by layout call `layout.removeWindow(window)` and apply returned `TileRect[]`; store signal ID in `_signalIds`
-- [ ] T023 [US1] Implement `fullscreen-changed` handler in `WorkspaceTiler.enable()` in `workspace-tiling-window-manager/lib/workspaceTiler.js`: for each tiled window connect to its `fullscreen-changed` signal; on fullscreen=true call `layout.removeWindow()` and apply reflow; on fullscreen=false call `layout.addWindow()` with `first-frame` guard and apply reflow; store signal IDs in `_signalIds`
+- [ ] T023 [US1] Implement `WorkspaceTiler._connectFullscreen(window)` helper in `workspace-tiling-window-manager/lib/workspaceTiler.js`: connect `fullscreen-changed` on the window; on fullscreen=true call `layout.removeWindow()` and apply reflow; on fullscreen=false call `layout.addWindow()` with `first-frame` guard and apply reflow; store signal ID in `_signalIds`. Call this helper from `enable()` for each existing tiled window AND from the `window-created` `first-frame` callback for every newly tiled window (FR-014 applies to all windows, not just those present at enable-time)
 - [ ] T024 [US1] Implement `WorkspaceTiler.disable()` in `workspace-tiling-window-manager/lib/workspaceTiler.js`: disconnect all IDs in `_signalIds`; restore each window in `savedRects` via `window.move_resize_frame(false, ...)`; call `this.layout.destroy()`; clear `_signalIds`, `savedRects`, `floatingWindows`
 - [ ] T025 [US1] Implement `TilingManager.enable()` in `workspace-tiling-window-manager/lib/tilingManager.js`: read `tiling-enabled-workspaces` from settings; filter to valid workspace indices (0 to `global.workspace_manager.get_n_workspaces()-1`); for each valid index and each monitor (0 to `global.display.get_n_monitors()-1`) create a `WorkspaceTiler` with `createLayout('dwindle')`, store in `_tilers` keyed `"wsIdx:monIdx"`, call `tiler.enable()`; connect `settings.changed::tiling-enabled-workspaces` to `_syncTilers()`; store signal ID in `_signalIds`
 - [ ] T026 [US1] Implement `TilingManager._syncTilers()` in `workspace-tiling-window-manager/lib/tilingManager.js`: diff current `tiling-enabled-workspaces` setting against active `_tilers` map; call `tiler.disable()` and delete for removed workspaces; create and `enable()` new tilers for added workspaces
@@ -200,6 +215,11 @@ verify it floats.
 - [ ] T053 [P] ESLint pass: run `npx eslint workspace-tiling-window-manager/` from repo root; fix all reported errors to zero
 - [ ] T054 [P] Prettier pass: run `npx prettier --write "workspace-tiling-window-manager/**/*.js"` from repo root; confirm no diff after formatting
 - [ ] T055 Run quickstart.md end-to-end validation: build, install to user dir, enable in nested GNOME Shell; open 4 windows on tiled workspace; verify Dwindle layout, focus nav (`Super+hjkl`), window move (`Super+Shift+hjkl`), resize (`Super+Ctrl+h/l`), float toggle (`Super+Shift+Space`), and preferences all function correctly
+- [ ] T059 [P] Add debug-logging calls for "keybinding fired" events (FR-018): in `workspace-tiling-window-manager/extension.js` keybinding callbacks, add `if (this._settings.get_boolean('debug-logging')) console.log('[workspace-tiling-window-manager] keybinding fired:', keyName)` for each of the 11 registered keybindings
+- [ ] T060 [P] Manual timing verification (SC-003, SC-007): document in PR smoke-test checklist — (a) measure focus-nav latency with `Super+h` across 4 tiles and confirm <100ms subjective response, (b) confirm no perceptible latency on a non-tiling workspace with extension enabled vs disabled (SC-007 baseline)
+- [ ] T061 [P] Generate and commit i18n template: run `xgettext --from-code=UTF-8 -k_ workspace-tiling-window-manager/prefs.js workspace-tiling-window-manager/lib/keybindingRow.js -o workspace-tiling-window-manager/po/workspace-tiling-window-manager.pot` and commit the `.pot` file (Constitution Architecture Standards MUST)
+- [ ] T062 [P] Audit prefs.js interactive controls for accessible names: ensure all `Adw.SpinRow`, `Adw.ComboRow`, `Adw.SwitchRow`, `Adw.EntryRow`, and `Gtk.Button` widgets have descriptive `title` or `tooltip_text` properties set so screen readers can identify them (Constitution Principle IV MUST)
+- [ ] T063 [P] Add Meson packaging target: add a `meson dist` step or a helper script `scripts/package-extension.sh` that produces `workspace-tiling-window-manager@korbajan.github.com.zip` compatible with extensions.gnome.org submission (Constitution Architecture Standards MUST)
 
 ---
 
@@ -209,7 +229,8 @@ verify it floats.
 
 - **Setup (Phase 1)**: No dependencies — start immediately
 - **Foundational (Phase 2)**: Depends on Phase 1 — blocks all user stories
-- **US1+US2 (Phase 3)**: Depends on Phase 2 — blocks all subsequent phases
+- **Unit Tests (Phase 2.5)**: Depends on Phase 2 (needs DwindleLayout stub) — tests must be written (Red) before Phase 3 finalises (Green)
+- **US1+US2 (Phase 3)**: Depends on Phase 2.5 tests existing — blocks all subsequent phases
 - **US3 (Phase 4)**: Depends on Phase 3
 - **US4 (Phase 5)**: Depends on Phase 3 — can run in parallel with Phase 4 and 6
 - **US5 (Phase 6)**: Depends on Phase 3 — can run in parallel with Phase 4 and 5

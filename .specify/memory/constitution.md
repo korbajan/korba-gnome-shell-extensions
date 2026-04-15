@@ -141,12 +141,15 @@ Keeping extensions focused and minimal makes them easier to audit, update, and m
 
 ## Extension Architecture Standards
 
-- **Repository layout**: Each extension lives under `extensions/<uuid>/` at the repo root.
-  Shared utilities live under `lib/`. Build scripts live under `build/`.
-- **Schemas**: GSettings schemas MUST be placed under `extensions/<uuid>/schemas/` and
-  compiled as part of the build step.
+- **Repository layout**: Each extension lives under `<extension-name>/` at the repository
+  root (e.g. `spatial-window-navigator/`, `workspace-tiling-window-manager/`). Shared
+  utilities live in the extension's own `lib/` subdirectory; build configuration lives in
+  each extension's `meson.build` and the root `meson.build`.
+- **Schemas**: GSettings schemas are placed at the extension root as
+  `org.gnome.shell.extensions.<uuid>.gschema.xml` and compiled as part of the build step
+  (via Meson `gnome.post_install(glib_compile_schemas: true)`).
 - **Translations**: `.pot` template files MUST be generated via `xgettext` and committed.
-  `.po` files live under `extensions/<uuid>/po/`.
+  `.po` files live under `<extension-name>/po/`.
 - **Build target**: The `Makefile` (or `meson.build`) MUST provide `make install` /
   `ninja install` targets that install to `~/.local/share/gnome-shell/extensions/<uuid>/`
   without requiring root.
@@ -195,4 +198,4 @@ flagging undocumented violations before approving a PR.
 
 **Runtime guidance**: See `.specify/memory/` for living agent-guidance documents.
 
-**Version**: 1.0.0 | **Ratified**: 2026-04-14 | **Last Amended**: 2026-04-14
+**Version**: 1.0.1 | **Ratified**: 2026-04-14 | **Last Amended**: 2026-04-15

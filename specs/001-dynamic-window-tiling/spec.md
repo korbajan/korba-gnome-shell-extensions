@@ -2,7 +2,7 @@
 
 **Feature Branch**: `001-dynamic-window-tiling`
 **Created**: 2026-04-14
-**Status**: Draft
+**Status**: Approved
 **Input**: User description: "Build an extension that allow turning on and configure a window
 tilling on one or more workspaces. It should be dynamic tiling mechanism inspired by i3 wm.
 Tiling is activated via extension settings per workspace. Start with Dwindle layout;
@@ -282,6 +282,9 @@ the panel, and verify both changes take effect immediately on the active tiling 
   (focus-switch latency with extension enabled is within ±10ms of baseline).
 - **SC-008**: A second layout type can be added by implementing the Layout Provider interface
   and registering it, without modifying any existing layout or core tiling code.
+- **SC-009**: A window whose `get_frame_rect()` width or height is less than the configured
+  `min-tile-size` (default 100 px) MUST start in floating mode on a tiled workspace and
+  MUST NOT be inserted into the tile tree.
 
 ## Assumptions
 

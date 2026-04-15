@@ -3,8 +3,8 @@
  "uuid": "@uuid@",
  "settings-schema": "@gschemaname@",
  "gettext-domain": "@gettext_domain@",
- "name": "Spatial Window Navigator",
- "description": "Navigate between windows on the current workspace using directional keybindings (arrow keys or vim-style hjkl).",
+ "name": "Workspace Tiling Window Manager",
+ "description": "Per-workspace dynamic window tiling using the Dwindle (spiral) layout, inspired by i3wm.",
  "shell-version": [ "@shell_current@" ],
  "url": "@url@",
  "version": 1
