@@ -23,7 +23,7 @@ import GObject from 'gi://GObject';
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main   from 'resource:///org/gnome/shell/ui/main.js';
 
-export default class DwindleTilerExtension extends Extension {
+export default class WorkspaceTilingWindowManagerExtension extends Extension {
     enable()  { /* set up */ }
     disable() { /* tear down — MUST disconnect all signals */ }
 }
@@ -158,7 +158,7 @@ and out of scope; GNOME shortcut schema registration — superseded by `addKeybi
 ## 4. GSettings & Persistence
 
 **Decision**: Extension GSettings via `this.getSettings()`. Schema ID:
-`org.gnome.shell.extensions.dwindle-tiler`.
+`org.gnome.shell.extensions.workspace-tiling-window-manager`.
 
 ```js
 // enable()
@@ -168,7 +168,7 @@ this._settings = this.getSettings();
 this._settings = null;
 ```
 
-Schema path: `/org/gnome/shell/extensions/dwindle-tiler/`
+Schema path: `/org/gnome/shell/extensions/workspace-tiling-window-manager/`
 
 Settings keys:
 
@@ -205,7 +205,7 @@ and survives shell restarts automatically. No custom serialisation needed.
 import {ExtensionPreferences} from
     'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
-export default class DwindleTilerPrefs extends ExtensionPreferences {
+export default class WorkspaceTilingWindowManagerPrefs extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const settings = this.getSettings();
         window.add(buildWorkspacesPage(settings));
@@ -289,15 +289,15 @@ AwesomeWM masterstack — rejected as a different layout, deferred to v2.
 
 **Decision**: Meson, following the existing `korba-gnome-extensions` project structure.
 
-New extension directory: `dwindle-tiler/`
-Add to `meson.build` extensions list: `'dwindle-tiler'`
+New extension directory: `workspace-tiling-window-manager/`
+Add to `meson.build` extensions list: `'workspace-tiling-window-manager'`
 
 ```
-dwindle-tiler/
+workspace-tiling-window-manager/
 ├── extension.js
 ├── prefs.js
 ├── metadata.json.in
-├── org.gnome.shell.extensions.dwindle-tiler.gschema.xml
+├── org.gnome.shell.extensions.workspace-tiling-window-manager.gschema.xml
 ├── meson.build
 └── lib/
     ├── layoutProvider.js     # Abstract LayoutProvider base + registry

@@ -2,9 +2,9 @@
 
 **Feature**: `001-dynamic-window-tiling`
 **Date**: 2026-04-14
-**Schema ID**: `org.gnome.shell.extensions.dwindle-tiler`
-**Schema path**: `/org/gnome/shell/extensions/dwindle-tiler/`
-**File**: `dwindle-tiler/org.gnome.shell.extensions.dwindle-tiler.gschema.xml`
+**Schema ID**: `org.gnome.shell.extensions.workspace-tiling-window-manager`
+**Schema path**: `/org/gnome/shell/extensions/workspace-tiling-window-manager/`
+**File**: `workspace-tiling-window-manager/org.gnome.shell.extensions.workspace-tiling-window-manager.gschema.xml`
 
 ---
 
@@ -13,8 +13,8 @@
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <schema id="org.gnome.shell.extensions.dwindle-tiler"
-          path="/org/gnome/shell/extensions/dwindle-tiler/">
+  <schema id="org.gnome.shell.extensions.workspace-tiling-window-manager"
+          path="/org/gnome/shell/extensions/workspace-tiling-window-manager/">
 
     <!-- ── Workspace Configuration ─────────────────────────────────── -->
 
@@ -193,7 +193,7 @@ const floatClasses = this._settings.get_strv('float-window-classes');
 
 // Read debug flag (check inline, zero-cost when false)
 if (this._settings.get_boolean('debug-logging'))
-    console.log('[dwindle-tiler] window inserted:', window.get_title());
+    console.log('[workspace-tiling-window-manager] window inserted:', window.get_title());
 ```
 
 ---

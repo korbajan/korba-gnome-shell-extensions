@@ -34,24 +34,24 @@ glib-compile-schemas ~/.local/share/glib-2.0/schemas/
 ```
 
 > **Tip**: Run `gnome-extensions list` to confirm
-> `dwindle-tiler@korbajan.github.com` appears after installation.
+> `workspace-tiling-window-manager@korbajan.github.com` appears after installation.
 
 ---
 
 ## Enable the Extension
 
 ```bash
-gnome-extensions enable dwindle-tiler@korbajan.github.com
+gnome-extensions enable workspace-tiling-window-manager@korbajan.github.com
 ```
 
-Or open **GNOME Extensions** app and toggle **Dwindle Tiler** on.
+Or open **GNOME Extensions** app and toggle **Workspace Tiling Window Manager** on.
 
 ---
 
 ## Enable Tiling on a Workspace
 
-1. Open **GNOME Extensions** → **Dwindle Tiler** → **Settings**
-   (or run `gnome-extensions prefs dwindle-tiler@korbajan.github.com`).
+1. Open **GNOME Extensions** → **Workspace Tiling Window Manager** → **Settings**
+   (or run `gnome-extensions prefs workspace-tiling-window-manager@korbajan.github.com`).
 2. On the **Workspaces** page, toggle on the workspaces you want tiled.
 3. Switch to a tiled workspace — open windows are immediately arranged.
 
@@ -80,7 +80,7 @@ meson setup build --prefix=/usr
 meson install -C build --destdir /tmp/ext-stage
 
 # Symlink into the user extension directory (fast iteration)
-ln -sf /tmp/ext-stage/usr/share/gnome-shell/extensions/dwindle-tiler@korbajan.github.com \
+ln -sf /tmp/ext-stage/usr/share/gnome-shell/extensions/workspace-tiling-window-manager@korbajan.github.com \
     ~/.local/share/gnome-shell/extensions/
 
 # Reload GNOME Shell (Wayland — must restart the session or use a nested shell)
@@ -109,10 +109,10 @@ journalctl /usr/bin/gnome-shell -f | grep -i dwindle
 
 ```bash
 # Lint (ESLint — config inherited from repo root)
-npx eslint dwindle-tiler/
+npx eslint workspace-tiling-window-manager/
 
 # Format check (Prettier)
-npx prettier --check "dwindle-tiler/**/*.js"
+npx prettier --check "workspace-tiling-window-manager/**/*.js"
 
 # Unit tests (lib/ modules are pure JS, testable with Node/Jasmine)
 npm test
@@ -123,8 +123,8 @@ npm test
 ## Uninstall
 
 ```bash
-gnome-extensions disable dwindle-tiler@korbajan.github.com
+gnome-extensions disable workspace-tiling-window-manager@korbajan.github.com
 meson install -C build --destdir ~/.local --tags runtime --strip
 # Or simply delete the extension directory:
-rm -rf ~/.local/share/gnome-shell/extensions/dwindle-tiler@korbajan.github.com
+rm -rf ~/.local/share/gnome-shell/extensions/workspace-tiling-window-manager@korbajan.github.com
 ```

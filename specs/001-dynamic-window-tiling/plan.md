@@ -27,7 +27,7 @@ the preferences panel opens; debug output is gated behind a `debug-logging` GSet
 **Language/Version**: GJS (ES Modules, GNOME Shell 50's SpiderMonkey/ES2022)
 **Primary Dependencies**: GNOME Shell 50 platform — Meta, Shell, St, Clutter, GLib, Gio,
   GObject, Adw (Adwaita), Gtk 4
-**Storage**: GSettings (`org.gnome.shell.extensions.dwindle-tiler`) via `this.getSettings()`
+**Storage**: GSettings (`org.gnome.shell.extensions.workspace-tiling-window-manager`) via `this.getSettings()`
 **Testing**: ESLint + Prettier (static); Node.js + Jasmine for pure lib/ unit tests;
   manual smoke tests in a nested Wayland GNOME Shell session
 **Target Platform**: GNOME Shell 50+, Wayland, Linux
@@ -44,7 +44,7 @@ the preferences panel opens; debug output is gated behind a `debug-logging` GSet
 
 | Principle | Status | Notes |
 |---|---|---|
-| I. GNOME Shell Extension Patterns | ✅ PASS | `extension.js` with `enable()`/`disable()`, `metadata.json.in`, correct namespace `org.gnome.shell.extensions.dwindle-tiler`, Adwaita prefs, `gi://` + `resource://` imports |
+| I. GNOME Shell Extension Patterns | ✅ PASS | `extension.js` with `enable()`/`disable()`, `metadata.json.in`, correct namespace `org.gnome.shell.extensions.workspace-tiling-window-manager`, Adwaita prefs, `gi://` + `resource://` imports |
 | II. Code Quality Standards | ✅ PASS | ESLint + Prettier in CI; `const`/`let` only; GObject subclassing only where required; no dead code policy |
 | III. Test-First Development | ✅ PASS | `DwindleTree` and `LayoutProvider` are pure JS — unit-testable with Node/Jasmine; lifecycle integration tests via nested shell |
 | IV. User Experience Consistency | ✅ PASS | `Adw.PreferencesWindow` with pages/groups; all strings in `_()`; keyboard-accessible controls; `KeybindingRow` from spatial-window-navigator |
@@ -73,11 +73,11 @@ specs/001-dynamic-window-tiling/
 ### Source Code (repository root)
 
 ```text
-dwindle-tiler/
+workspace-tiling-window-manager/
 ├── extension.js                                         # Extension entry point
 ├── prefs.js                                             # Preferences UI
 ├── metadata.json.in                                     # Meson-templated metadata
-├── org.gnome.shell.extensions.dwindle-tiler.gschema.xml # GSettings schema
+├── org.gnome.shell.extensions.workspace-tiling-window-manager.gschema.xml # GSettings schema
 ├── meson.build                                          # Extension build rules
 └── lib/
     ├── layoutProvider.js    # Abstract LayoutProvider base class + LayoutRegistry
@@ -86,8 +86,8 @@ dwindle-tiler/
     ├── workspaceTiler.js    # WorkspaceTiler: manages one (workspace, monitor) pair
     └── keybindingRow.js     # Reusable KeybindingRow + KeyCaptureWindow (from spatial-window-navigator)
 
-# Root build file — add 'dwindle-tiler' to the extensions list
-meson.build                  # Add 'dwindle-tiler' to extensions array
+# Root build file — add 'workspace-tiling-window-manager' to the extensions list
+meson.build                  # Add 'workspace-tiling-window-manager' to extensions array
 ```
 
 **Structure Decision**: Single extension directory following the `spatial-window-navigator`
@@ -126,8 +126,8 @@ All decisions recorded in `research.md`. Summary:
 5. **Keybindings**: `Main.wm.addKeybinding(key, settings, NONE, NORMAL, cb)` and
    `removeKeybinding(key)`; GSettings keys of type `as`.
 6. **GSettings**: `this.getSettings()` in `enable()`; schema
-   `org.gnome.shell.extensions.dwindle-tiler`; path
-   `/org/gnome/shell/extensions/dwindle-tiler/`; includes `debug-logging` boolean key
+   `org.gnome.shell.extensions.workspace-tiling-window-manager`; path
+   `/org/gnome/shell/extensions/workspace-tiling-window-manager/`; includes `debug-logging` boolean key
    (default `false`) gating all `console.log`/`console.warn` output (clarification Q5).
 7. **Stale workspace indices**: Silently ignored at runtime; auto-removed from
    `tiling-enabled-workspaces` when the preferences panel opens (clarification Q3).
@@ -138,7 +138,7 @@ All decisions recorded in `research.md`. Summary:
    tiles; filter by `window.get_monitor()` for multi-monitor isolation.
 10. **Dwindle algorithm**: Binary split-tree with alternating perpendicular axis splits;
     `lastLeaf` always split for next window; sibling promotion on removal.
-11. **Build**: Meson, follows existing project; add `'dwindle-tiler'` to root `meson.build`.
+11. **Build**: Meson, follows existing project; add `'workspace-tiling-window-manager'` to root `meson.build`.
 
 ## Phase 1: Design Artifacts
 
