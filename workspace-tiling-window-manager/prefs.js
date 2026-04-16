@@ -83,11 +83,11 @@ function _buildWorkspacesPage(settings) {
 
 function _buildShortcutsPage(settings) {
     const page = new Adw.PreferencesPage({
-        title: _('Keyboard Shortcuts'),
+        title: _('Keybindings'),
         icon_name: 'input-keyboard-symbolic',
     });
 
-    const focusGroup = new Adw.PreferencesGroup({ title: _('Focus') });
+    const focusGroup = new Adw.PreferencesGroup({ title: _('Focus Window') });
     for (const [key, title] of [
         ['keybind-focus-left', _('Focus Left')],
         ['keybind-focus-right', _('Focus Right')],
@@ -110,15 +110,18 @@ function _buildShortcutsPage(settings) {
         moveGroup.add(new KeybindingRow(title, '', settings, key));
     page.add(moveGroup);
 
-    const resizeGroup = new Adw.PreferencesGroup({ title: _('Resize') });
+    const resizeGroup = new Adw.PreferencesGroup({
+        title: _('Tile Split Resize'),
+        description: _('Move the dividing line between the focused tile and its sibling by 5% per keypress'),
+    });
     for (const [key, title] of [
-        ['keybind-resize-shrink', _('Shrink Tile')],
-        ['keybind-resize-grow', _('Grow Tile')],
+        ['keybind-resize-shrink', _('Shrink')],
+        ['keybind-resize-grow', _('Grow')],
     ])
         resizeGroup.add(new KeybindingRow(title, '', settings, key));
     page.add(resizeGroup);
 
-    const floatGroup = new Adw.PreferencesGroup({ title: _('Floating') });
+    const floatGroup = new Adw.PreferencesGroup({ title: _('Window Floating') });
     floatGroup.add(new KeybindingRow(_('Toggle Floating'), '', settings, 'keybind-toggle-float'));
     page.add(floatGroup);
 
@@ -214,7 +217,7 @@ class FloatRulesGroup extends Adw.PreferencesGroup {
     constructor(settings) {
         super({
             title: _('Window Classes That Always Float'),
-            description: _('Enter the WM class string (e.g. org.gnome.Calculator).'),
+            description: _('Enter the WM class of the app to always open floating. To find it: focus the app, then run in a terminal: gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell --method org.gnome.Shell.Eval "global.display.focus_window.get_wm_class()"'),
         });
         this._settings = settings;
         this._rows = [];
