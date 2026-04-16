@@ -87,10 +87,14 @@ npm test          # runs Jasmine — 33 specs, must stay green
 ### Lint & Format
 
 ```bash
-# ESLint (from repo root)
-node_modules/.bin/eslint workspace-tiling-window-manager/
+# Via npm scripts (from repo root — preferred)
+npm run lint              # ESLint both extensions
+npm run lint:fix          # ESLint with auto-fix
+npm run format            # Prettier write both extensions
+npm run format:check      # Prettier check (no write)
 
-# Prettier
+# Direct (if node_modules not installed at root)
+node_modules/.bin/eslint workspace-tiling-window-manager/
 node_modules/.bin/prettier --write "workspace-tiling-window-manager/**/*.js"
 ```
 
