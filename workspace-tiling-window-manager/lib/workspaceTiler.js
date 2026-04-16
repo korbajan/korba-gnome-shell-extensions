@@ -101,6 +101,38 @@ export class WorkspaceTiler {
             },
             this._signalIds,
         );
+
+        // window-added: handles windows moved here from another workspace.
+        // New windows are handled by TilingManager._addNewWindow (first-frame guard).
+        // We skip unrealized actors (new, not yet drawn) to avoid racing with that path.
+        connectStored(
+            workspace,
+            'window-added',
+            (_ws, window) => {
+                if (!shouldTile(window)) return;
+                if (this.floatingWindows.has(window)) return;
+                if (this.layout.hasWindow(window)) return;
+
+                const actor = window.get_compositor_private();
+                // actor.realized == false for brand-new windows not yet painted;
+                // those are handled by _addNewWindow's first-frame guard.
+                if (!actor || !actor.realized) return;
+
+                if (!this.savedRects.has(window)) {
+                    const r = window.get_frame_rect();
+                    this.savedRects.set(window, { x: r.x, y: r.y, width: r.width, height: r.height });
+                }
+                applyRects(this.layout.addWindow(window));
+                this._connectFullscreen(window);
+
+                if (this._settings.get_boolean('debug-logging'))
+                    console.log(
+                        '[workspace-tiling-window-manager] window moved in:',
+                        window.get_title(),
+                    );
+            },
+            this._signalIds,
+        );
     }
 
     /**
@@ -215,6 +247,7 @@ export class WorkspaceTiler {
      */
     floatWindow(window) {
         if (this.layout.hasWindow(window)) applyRects(this.layout.removeWindow(window));
+        this._disconnectWindowSignals(window);
 
         this.floatingWindows.add(window);
 
@@ -234,20 +267,17 @@ export class WorkspaceTiler {
 
     /**
      * Re-insert a floating window into the tile layout.
+     * The window is already mapped and visible, so no first-frame guard is needed.
      * @param {import('gi://Meta').Window} window
      */
     sinkWindow(window) {
         this.floatingWindows.delete(window);
+        // Reconnect fullscreen tracking (was disconnected when window was floated)
+        this._disconnectWindowSignals(window);
+        applyRects(this.layout.addWindow(window));
+        this._connectFullscreen(window);
 
-        const actor = window.get_compositor_private();
-        if (!actor) {
-            applyRects(this.layout.addWindow(window));
-            return;
-        }
-
-        const frameId = actor.connect('first-frame', () => {
-            actor.disconnect(frameId);
-            applyRects(this.layout.addWindow(window));
-        });
+        if (this._settings.get_boolean('debug-logging'))
+            console.log('[workspace-tiling-window-manager] window sunk:', window.get_title());
     }
 }

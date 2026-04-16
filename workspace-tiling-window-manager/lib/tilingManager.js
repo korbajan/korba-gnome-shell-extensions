@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { createLayout } from './layoutProvider.js';
 import { WorkspaceTiler } from './workspaceTiler.js';
 import { applyRects } from './utils.js';
@@ -61,7 +62,7 @@ export class TilingManager {
         );
 
         // React to monitor hotplug
-        this._connect(global.display, 'monitors-changed', () => this._syncTilers());
+        this._connect(Main.layoutManager, 'monitors-changed', () => this._syncTilers());
     }
 
     // ── Disable ───────────────────────────────────────────────────────────────
