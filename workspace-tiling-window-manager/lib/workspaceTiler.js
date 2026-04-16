@@ -19,11 +19,15 @@ export function shouldTile(window) {
 
 /**
  * Apply an array of TileRects by moving/resizing each window.
+ * Unmaximizes first so move_resize_frame is not ignored by the compositor.
  * @param {import('./layoutProvider.js').TileRect[]} rects
  */
 function applyRects(rects) {
-    for (const { window, x, y, width, height } of rects)
+    for (const { window, x, y, width, height } of rects) {
+        if (window.maximized_horizontally || window.maximized_vertically)
+            window.unmaximize(Meta.MaximizeFlags.BOTH);
         window.move_resize_frame(false, x, y, width, height);
+    }
 }
 
 /**
@@ -167,7 +171,7 @@ export class WorkspaceTiler {
     _connectFullscreen(window) {
         connectStored(
             window,
-            'fullscreen-changed',
+            'notify::fullscreen',
             () => {
                 if (window.fullscreen) {
                     if (this.layout.hasWindow(window)) applyRects(this.layout.removeWindow(window));

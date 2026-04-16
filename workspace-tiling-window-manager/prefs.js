@@ -97,12 +97,15 @@ function _buildShortcutsPage(settings) {
         focusGroup.add(new KeybindingRow(title, '', settings, key));
     page.add(focusGroup);
 
-    const moveGroup = new Adw.PreferencesGroup({ title: _('Move Window') });
+    const moveGroup = new Adw.PreferencesGroup({
+        title: _('Swap Window'),
+        description: _('Swap the focused tile with its neighbour — tile positions stay fixed, window contents are exchanged'),
+    });
     for (const [key, title] of [
-        ['keybind-move-left', _('Move Left')],
-        ['keybind-move-right', _('Move Right')],
-        ['keybind-move-up', _('Move Up')],
-        ['keybind-move-down', _('Move Down')],
+        ['keybind-move-left', _('Swap Left')],
+        ['keybind-move-right', _('Swap Right')],
+        ['keybind-move-up', _('Swap Up')],
+        ['keybind-move-down', _('Swap Down')],
     ])
         moveGroup.add(new KeybindingRow(title, '', settings, key));
     page.add(moveGroup);
