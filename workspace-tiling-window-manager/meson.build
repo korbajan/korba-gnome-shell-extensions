@@ -32,6 +32,7 @@ install_data(
     'lib/tilingManager.js',
     'lib/workspaceTiler.js',
     'lib/keybindingRow.js',
+    'lib/utils.js',
   ],
   install_dir: join_paths(extensiondir, uuid, 'lib'),
 )

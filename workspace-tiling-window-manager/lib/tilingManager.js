@@ -4,15 +4,7 @@
 
 import { createLayout } from './layoutProvider.js';
 import { WorkspaceTiler } from './workspaceTiler.js';
-
-/**
- * Apply an array of TileRects by moving/resizing each window.
- * @param {import('./layoutProvider.js').TileRect[]} rects
- */
-function applyRects(rects) {
-    for (const { window, x, y, width, height } of rects)
-        window.move_resize_frame(false, x, y, width, height);
-}
+import { applyRects } from './utils.js';
 
 /**
  * Top-level coordinator.  Creates and manages one WorkspaceTiler per
@@ -37,14 +29,13 @@ export class TilingManager {
     enable() {
         this._startTilersFromSettings();
 
-        // React to workspace list changes in settings
-        const changedId = this._settings.connect('changed::tiling-enabled-workspaces', () =>
+        // React to tiling workspace list changes
+        this._connect(this._settings, 'changed::tiling-enabled-workspaces', () =>
             this._syncTilers(),
         );
-        this._signalIds.push({ obj: this._settings, id: changedId });
 
         // React to gap-size changes: reflow all active tilers
-        const gapId = this._settings.connect('changed::gap-size', () => {
+        this._connect(this._settings, 'changed::gap-size', () => {
             for (const tiler of this._tilers.values()) {
                 const workspace = global.workspace_manager.get_workspace_by_index(
                     tiler.workspaceIndex,
@@ -54,7 +45,23 @@ export class TilingManager {
                 applyRects(tiler.layout.updateWorkArea(workArea));
             }
         });
-        this._signalIds.push({ obj: this._settings, id: gapId });
+
+        // Centralized window-created: route each new window to the right tiler
+        this._connect(global.display, 'window-created', (_display, window) => {
+            const wsIdx = window.get_workspace()?.index();
+            if (wsIdx === null || wsIdx === undefined) return;
+            const mon = window.get_monitor();
+            const tiler = this._tilers.get(`${wsIdx}:${mon}`);
+            tiler?._addNewWindow(window);
+        });
+
+        // React to workspace count changes (e.g. new workspace created)
+        this._connect(global.workspace_manager, 'notify::n-workspaces', () =>
+            this._syncTilers(),
+        );
+
+        // React to monitor hotplug
+        this._connect(global.display, 'monitors-changed', () => this._syncTilers());
     }
 
     // ── Disable ───────────────────────────────────────────────────────────────
@@ -68,6 +75,11 @@ export class TilingManager {
     }
 
     // ── Tiler lifecycle helpers ───────────────────────────────────────────────
+
+    _connect(obj, signal, handler) {
+        const id = obj.connect(signal, handler);
+        this._signalIds.push({ obj, id });
+    }
 
     _startTilersFromSettings() {
         const n = global.workspace_manager.get_n_workspaces();

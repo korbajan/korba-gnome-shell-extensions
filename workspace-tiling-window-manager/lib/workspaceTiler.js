@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 
 import Meta from 'gi://Meta';
+import { applyRects } from './utils.js';
 
 /**
  * Returns true if `window` should be managed by the tiling layout.
@@ -18,20 +19,7 @@ export function shouldTile(window) {
 }
 
 /**
- * Apply an array of TileRects by moving/resizing each window.
- * Unmaximizes first so move_resize_frame is not ignored by the compositor.
- * @param {import('./layoutProvider.js').TileRect[]} rects
- */
-function applyRects(rects) {
-    for (const { window, x, y, width, height } of rects) {
-        if (window.maximized_horizontally || window.maximized_vertically)
-            window.unmaximize(Meta.MaximizeFlags.BOTH);
-        window.move_resize_frame(false, x, y, width, height);
-    }
-}
-
-/**
- * Connect a signal and store the ID for later disconnection.
+ * Connect a signal and store the ID in `store` for later disconnection.
  * @param {object} obj
  * @param {string} signal
  * @param {Function} handler
@@ -67,8 +55,11 @@ export class WorkspaceTiler {
         /** @type {Map<import('gi://Meta').Window, {x:number,y:number,width:number,height:number}>} */
         this.savedRects = new Map();
 
-        /** @type {Array<{obj:object,id:number}>} */
+        /** @type {Array<{obj:object,id:number}>} — non-window signals (workspace, display) */
         this._signalIds = [];
+
+        /** @type {Map<import('gi://Meta').Window, Array<{obj:object,id:number}>>} — per-window signals */
+        this._windowSignalIds = new Map();
     }
 
     // ── Enable / initial collection ───────────────────────────────────────────
@@ -89,64 +80,15 @@ export class WorkspaceTiler {
             const r = w.get_frame_rect();
             this.savedRects.set(w, { x: r.x, y: r.y, width: r.width, height: r.height });
             applyRects(this.layout.addWindow(w));
+            this._connectFullscreen(w);
         }
-
-        // window-created
-        connectStored(
-            global.display,
-            'window-created',
-            (_display, window) => {
-                if (window.get_workspace()?.index() !== this.workspaceIndex) return;
-                if (window.get_monitor() !== this.monitorIndex) return;
-                if (!shouldTile(window)) return;
-                if (this.floatingWindows.has(window)) return;
-
-                const actor = window.get_compositor_private();
-                if (!actor) return;
-
-                const frameId = actor.connect('first-frame', () => {
-                    actor.disconnect(frameId);
-
-                    const minSize = this._settings.get_uint('min-tile-size');
-                    const floatClasses = this._settings.get_strv('float-window-classes');
-
-                    if (floatClasses.includes(window.get_wm_class())) {
-                        this.floatWindow(window);
-                        return;
-                    }
-
-                    const nat = window.get_frame_rect();
-                    if (nat.width < minSize || nat.height < minSize) {
-                        this.floatWindow(window);
-                        return;
-                    }
-
-                    const r = window.get_frame_rect();
-                    this.savedRects.set(window, {
-                        x: r.x,
-                        y: r.y,
-                        width: r.width,
-                        height: r.height,
-                    });
-                    applyRects(this.layout.addWindow(window));
-                    // Connect fullscreen-changed for this newly tiled window (FR-014)
-                    this._connectFullscreen(window);
-
-                    if (this._settings.get_boolean('debug-logging'))
-                        console.log(
-                            '[workspace-tiling-window-manager] window inserted:',
-                            window.get_title(),
-                        );
-                });
-            },
-            this._signalIds,
-        );
 
         // window-removed (workspace signal)
         connectStored(
             workspace,
             'window-removed',
             (_ws, window) => {
+                this._disconnectWindowSignals(window);
                 if (!this.layout.hasWindow(window)) return;
                 applyRects(this.layout.removeWindow(window));
                 this.savedRects.delete(window);
@@ -159,16 +101,57 @@ export class WorkspaceTiler {
             },
             this._signalIds,
         );
-
-        // fullscreen-changed per existing window
-        for (const w of existing) this._connectFullscreen(w);
     }
 
     /**
-     * Connect fullscreen-changed for a window.
+     * Handle a newly created window routed here by TilingManager.
+     * Uses a first-frame guard (required on Wayland) before tiling.
+     * @param {import('gi://Meta').Window} window
+     */
+    _addNewWindow(window) {
+        if (!shouldTile(window)) return;
+        if (this.floatingWindows.has(window)) return;
+
+        const actor = window.get_compositor_private();
+        if (!actor) return;
+
+        const frameId = actor.connect('first-frame', () => {
+            actor.disconnect(frameId);
+
+            const minSize = this._settings.get_uint('min-tile-size');
+            const floatClasses = this._settings.get_strv('float-window-classes');
+
+            if (floatClasses.includes(window.get_wm_class())) {
+                this.floatWindow(window);
+                return;
+            }
+
+            const nat = window.get_frame_rect();
+            if (nat.width < minSize || nat.height < minSize) {
+                this.floatWindow(window);
+                return;
+            }
+
+            const r = window.get_frame_rect();
+            this.savedRects.set(window, { x: r.x, y: r.y, width: r.width, height: r.height });
+            applyRects(this.layout.addWindow(window));
+            this._connectFullscreen(window);
+
+            if (this._settings.get_boolean('debug-logging'))
+                console.log(
+                    '[workspace-tiling-window-manager] window inserted:',
+                    window.get_title(),
+                );
+        });
+    }
+
+    /**
+     * Connect notify::fullscreen for a window, stored in _windowSignalIds.
      * @param {import('gi://Meta').Window} window
      */
     _connectFullscreen(window) {
+        if (!this._windowSignalIds.has(window)) this._windowSignalIds.set(window, []);
+
         connectStored(
             window,
             'notify::fullscreen',
@@ -186,8 +169,19 @@ export class WorkspaceTiler {
                     }
                 }
             },
-            this._signalIds,
+            this._windowSignalIds.get(window),
         );
+    }
+
+    /**
+     * Disconnect and remove all per-window signals for `window`.
+     * @param {import('gi://Meta').Window} window
+     */
+    _disconnectWindowSignals(window) {
+        const ids = this._windowSignalIds.get(window);
+        if (!ids) return;
+        for (const { obj, id } of ids) obj.disconnect(id);
+        this._windowSignalIds.delete(window);
     }
 
     // ── Disable / restore ─────────────────────────────────────────────────────
@@ -195,6 +189,10 @@ export class WorkspaceTiler {
     disable() {
         for (const { obj, id } of this._signalIds) obj.disconnect(id);
         this._signalIds = [];
+
+        for (const ids of this._windowSignalIds.values())
+            for (const { obj, id } of ids) obj.disconnect(id);
+        this._windowSignalIds.clear();
 
         for (const [window, rect] of this.savedRects) {
             try {
