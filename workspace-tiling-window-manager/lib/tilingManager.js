@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+import GLib from 'gi://GLib';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 import { createLayout } from './layoutProvider.js';
 import { WorkspaceTiler } from './workspaceTiler.js';
@@ -56,11 +57,20 @@ export class TilingManager {
             if (!actor) return;
             const frameId = actor.connect('first-frame', () => {
                 actor.disconnect(frameId);
-                const wsIdx = window.get_workspace()?.index();
-                if (wsIdx === null || wsIdx === undefined) return;
-                const mon = window.get_monitor();
-                const tiler = this._tilers.get(`${wsIdx}:${mon}`);
-                tiler?._tileNewWindow(window);
+                // Defer one idle cycle so GNOME's window placement (and
+                // auto-move-windows) can settle the final monitor before we tile.
+                GLib.idle_add(GLib.PRIORITY_DEFAULT_IDLE, () => {
+                    const wsIdx = window.get_workspace()?.index();
+                    if (wsIdx === null || wsIdx === undefined) return GLib.SOURCE_REMOVE;
+                    const mon = window.get_monitor();
+                    if (this._settings.get_boolean('debug-logging'))
+                        console.log('[workspace-tiling-window-manager] first-frame route:',
+                            window.get_title(), '| ws:', wsIdx, '| mon:', mon,
+                            '| tiler:', this._tilers.has(`${wsIdx}:${mon}`) ? 'found' : 'NONE');
+                    const tiler = this._tilers.get(`${wsIdx}:${mon}`);
+                    tiler?._tileNewWindow(window);
+                    return GLib.SOURCE_REMOVE;
+                });
             });
         });
 

@@ -2,8 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-import Meta from 'gi://Meta';
-
 /**
  * Apply an array of TileRects by moving/resizing each window.
  * Unmaximizes first so move_resize_frame is not ignored by the compositor.
@@ -12,7 +10,7 @@ import Meta from 'gi://Meta';
 export function applyRects(rects) {
     for (const { window, x, y, width, height } of rects) {
         if (window.maximized_horizontally || window.maximized_vertically)
-            window.unmaximize(Meta.MaximizeFlags.BOTH);
+            window.unmaximize();
         window.move_resize_frame(false, x, y, width, height);
     }
 }

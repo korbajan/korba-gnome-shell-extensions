@@ -110,6 +110,7 @@ export class WorkspaceTiler {
             'window-added',
             (_ws, window) => {
                 if (!shouldTile(window)) return;
+                if (window.get_monitor() !== this.monitorIndex) return;
                 if (this.floatingWindows.has(window)) return;
                 if (this.layout.hasWindow(window)) return;
 
@@ -129,6 +130,9 @@ export class WorkspaceTiler {
                     console.log(
                         '[workspace-tiling-window-manager] window moved in:',
                         window.get_title(),
+                        '| ws:', this.workspaceIndex,
+                        '| mon:', this.monitorIndex,
+                        '| win-mon:', window.get_monitor(),
                     );
             },
             this._signalIds,
@@ -143,6 +147,7 @@ export class WorkspaceTiler {
     _tileNewWindow(window) {
         if (!shouldTile(window)) return;
         if (this.floatingWindows.has(window)) return;
+        if (this.layout.hasWindow(window)) return;
 
         const minSize = this._settings.get_uint('min-tile-size');
         const floatClasses = this._settings.get_strv('float-window-classes');
@@ -167,6 +172,9 @@ export class WorkspaceTiler {
             console.log(
                 '[workspace-tiling-window-manager] window inserted:',
                 window.get_title(),
+                '| ws:', this.workspaceIndex,
+                '| mon:', this.monitorIndex,
+                '| win-mon:', window.get_monitor(),
             );
     }
 
@@ -181,17 +189,20 @@ export class WorkspaceTiler {
             window,
             'notify::fullscreen',
             () => {
+                const dbg = this._settings.get_boolean('debug-logging');
+                if (dbg)
+                    console.log(
+                        '[workspace-tiling-window-manager] notify::fullscreen fired:',
+                        window.get_title(),
+                        '| fullscreen:', window.fullscreen,
+                        '| inLayout:', this.layout.hasWindow(window),
+                        '| floating:', this.floatingWindows.has(window),
+                    );
                 if (window.fullscreen) {
                     if (this.layout.hasWindow(window)) applyRects(this.layout.removeWindow(window));
                 } else {
-                    if (!this.layout.hasWindow(window) && !this.floatingWindows.has(window)) {
-                        const actor = window.get_compositor_private();
-                        if (!actor) return;
-                        const frameId = actor.connect('first-frame', () => {
-                            actor.disconnect(frameId);
-                            applyRects(this.layout.addWindow(window));
-                        });
-                    }
+                    if (!this.layout.hasWindow(window) && !this.floatingWindows.has(window))
+                        applyRects(this.layout.addWindow(window));
                 }
             },
             this._windowSignalIds.get(window),
