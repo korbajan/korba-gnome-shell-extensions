@@ -103,7 +103,7 @@ export class WorkspaceTiler {
         );
 
         // window-added: handles windows moved here from another workspace.
-        // New windows are handled by TilingManager._addNewWindow (first-frame guard).
+        // New windows are handled by TilingManager after first-frame (_tileNewWindow).
         // We skip unrealized actors (new, not yet drawn) to avoid racing with that path.
         connectStored(
             workspace,
@@ -136,45 +136,38 @@ export class WorkspaceTiler {
     }
 
     /**
-     * Handle a newly created window routed here by TilingManager.
-     * Uses a first-frame guard (required on Wayland) before tiling.
+     * Tile a newly created window. Called by TilingManager after first-frame
+     * so the window's monitor assignment is stable (Wayland finalises it then).
      * @param {import('gi://Meta').Window} window
      */
-    _addNewWindow(window) {
+    _tileNewWindow(window) {
         if (!shouldTile(window)) return;
         if (this.floatingWindows.has(window)) return;
 
-        const actor = window.get_compositor_private();
-        if (!actor) return;
+        const minSize = this._settings.get_uint('min-tile-size');
+        const floatClasses = this._settings.get_strv('float-window-classes');
 
-        const frameId = actor.connect('first-frame', () => {
-            actor.disconnect(frameId);
+        if (floatClasses.includes(window.get_wm_class())) {
+            this.floatWindow(window);
+            return;
+        }
 
-            const minSize = this._settings.get_uint('min-tile-size');
-            const floatClasses = this._settings.get_strv('float-window-classes');
+        const nat = window.get_frame_rect();
+        if (nat.width < minSize || nat.height < minSize) {
+            this.floatWindow(window);
+            return;
+        }
 
-            if (floatClasses.includes(window.get_wm_class())) {
-                this.floatWindow(window);
-                return;
-            }
+        const r = window.get_frame_rect();
+        this.savedRects.set(window, { x: r.x, y: r.y, width: r.width, height: r.height });
+        applyRects(this.layout.addWindow(window));
+        this._connectFullscreen(window);
 
-            const nat = window.get_frame_rect();
-            if (nat.width < minSize || nat.height < minSize) {
-                this.floatWindow(window);
-                return;
-            }
-
-            const r = window.get_frame_rect();
-            this.savedRects.set(window, { x: r.x, y: r.y, width: r.width, height: r.height });
-            applyRects(this.layout.addWindow(window));
-            this._connectFullscreen(window);
-
-            if (this._settings.get_boolean('debug-logging'))
-                console.log(
-                    '[workspace-tiling-window-manager] window inserted:',
-                    window.get_title(),
-                );
-        });
+        if (this._settings.get_boolean('debug-logging'))
+            console.log(
+                '[workspace-tiling-window-manager] window inserted:',
+                window.get_title(),
+            );
     }
 
     /**

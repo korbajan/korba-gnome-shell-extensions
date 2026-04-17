@@ -47,13 +47,21 @@ export class TilingManager {
             }
         });
 
-        // Centralized window-created: route each new window to the right tiler
+        // Centralized window-created: wait for first-frame before routing.
+        // On Wayland, window.get_monitor() is not stable until after the first
+        // frame is drawn — routing at creation time sends windows to the wrong
+        // tiler on multi-monitor setups.
         this._connect(global.display, 'window-created', (_display, window) => {
-            const wsIdx = window.get_workspace()?.index();
-            if (wsIdx === null || wsIdx === undefined) return;
-            const mon = window.get_monitor();
-            const tiler = this._tilers.get(`${wsIdx}:${mon}`);
-            tiler?._addNewWindow(window);
+            const actor = window.get_compositor_private();
+            if (!actor) return;
+            const frameId = actor.connect('first-frame', () => {
+                actor.disconnect(frameId);
+                const wsIdx = window.get_workspace()?.index();
+                if (wsIdx === null || wsIdx === undefined) return;
+                const mon = window.get_monitor();
+                const tiler = this._tilers.get(`${wsIdx}:${mon}`);
+                tiler?._tileNewWindow(window);
+            });
         });
 
         // React to workspace count changes (e.g. new workspace created)
