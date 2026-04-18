@@ -67,9 +67,16 @@ export class TilingManager {
                     if (wsIdx === null || wsIdx === undefined) return GLib.SOURCE_REMOVE;
                     const mon = window.get_monitor();
                     if (this._settings.get_boolean('debug-logging'))
-                        console.log('[workspace-tiling-window-manager] first-frame route:',
-                            window.get_title(), '| ws:', wsIdx, '| mon:', mon,
-                            '| tiler:', this._tilers.has(`${wsIdx}:${mon}`) ? 'found' : 'NONE');
+                        console.log(
+                            '[workspace-tiling-window-manager] first-frame route:',
+                            window.get_title(),
+                            '| ws:',
+                            wsIdx,
+                            '| mon:',
+                            mon,
+                            '| tiler:',
+                            this._tilers.has(`${wsIdx}:${mon}`) ? 'found' : 'NONE',
+                        );
                     const tiler = this._tilers.get(`${wsIdx}:${mon}`);
                     if (tiler) {
                         this._pendingTile.add(window);
@@ -87,9 +94,7 @@ export class TilingManager {
         });
 
         // React to workspace count changes (e.g. new workspace created)
-        this._connect(global.workspace_manager, 'notify::n-workspaces', () =>
-            this._syncTilers(),
-        );
+        this._connect(global.workspace_manager, 'notify::n-workspaces', () => this._syncTilers());
 
         // React to monitor hotplug
         this._connect(Main.layoutManager, 'monitors-changed', () => this._syncTilers());
@@ -126,7 +131,11 @@ export class TilingManager {
                 const key = `${wsIdx}:${mon}`;
                 if (this._tilers.has(key)) continue;
                 const tiler = new WorkspaceTiler(
-                    wsIdx, mon, createLayout('dwindle'), this._settings, this._pendingTile,
+                    wsIdx,
+                    mon,
+                    createLayout('dwindle'),
+                    this._settings,
+                    this._pendingTile,
                 );
                 tiler.enable();
                 this._tilers.set(key, tiler);
@@ -160,7 +169,11 @@ export class TilingManager {
             if (this._tilers.has(key)) continue;
             const [wsIdx, mon] = key.split(':').map(Number);
             const tiler = new WorkspaceTiler(
-                wsIdx, mon, createLayout('dwindle'), this._settings, this._pendingTile,
+                wsIdx,
+                mon,
+                createLayout('dwindle'),
+                this._settings,
+                this._pendingTile,
             );
             tiler.enable();
             this._tilers.set(key, tiler);

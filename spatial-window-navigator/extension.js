@@ -5,7 +5,7 @@
 import Meta from 'gi://Meta';
 import Shell from 'gi://Shell';
 
-import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
+import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 export default class SpatialWindowNavigator extends Extension {
@@ -15,14 +15,18 @@ export default class SpatialWindowNavigator extends Extension {
         const mode = Shell.ActionMode.NORMAL;
         const flags = Meta.KeyBindingFlags.NONE;
 
-        Main.wm.addKeybinding('focus-window-left', this._settings, flags, mode,
-            () => this._focusDirection('left'));
-        Main.wm.addKeybinding('focus-window-right', this._settings, flags, mode,
-            () => this._focusDirection('right'));
-        Main.wm.addKeybinding('focus-window-up', this._settings, flags, mode,
-            () => this._focusDirection('up'));
-        Main.wm.addKeybinding('focus-window-down', this._settings, flags, mode,
-            () => this._focusDirection('down'));
+        Main.wm.addKeybinding('focus-window-left', this._settings, flags, mode, () =>
+            this._focusDirection('left'),
+        );
+        Main.wm.addKeybinding('focus-window-right', this._settings, flags, mode, () =>
+            this._focusDirection('right'),
+        );
+        Main.wm.addKeybinding('focus-window-up', this._settings, flags, mode, () =>
+            this._focusDirection('up'),
+        );
+        Main.wm.addKeybinding('focus-window-down', this._settings, flags, mode, () =>
+            this._focusDirection('down'),
+        );
     }
 
     disable() {
@@ -36,11 +40,11 @@ export default class SpatialWindowNavigator extends Extension {
     _focusDirection(direction) {
         const focused = global.display.focus_window;
         const workspace = global.workspace_manager.get_active_workspace();
-        const windows = workspace.list_windows().filter(w =>
-            !w.minimized && !w.skip_taskbar && w !== focused);
+        const windows = workspace
+            .list_windows()
+            .filter(w => !w.minimized && !w.skip_taskbar && w !== focused);
 
-        if (windows.length === 0)
-            return;
+        if (windows.length === 0) return;
 
         if (!focused) {
             windows[0].activate(global.get_current_time());
@@ -62,20 +66,22 @@ export default class SpatialWindowNavigator extends Extension {
             const dy = cy - fcy;
 
             const inDir =
-                direction === 'left'  ? dx < 0 :
-                direction === 'right' ? dx > 0 :
-                direction === 'up'    ? dy < 0 :
-                /* down */              dy > 0;
+                direction === 'left'
+                    ? dx < 0
+                    : direction === 'right'
+                      ? dx > 0
+                      : direction === 'up'
+                        ? dy < 0
+                        : /* down */ dy > 0;
 
-            if (!inDir)
-                continue;
+            if (!inDir) continue;
 
             // Weight cross-axis distance less so nearby windows are preferred
             // even if not perfectly aligned
-            const primary = (direction === 'left' || direction === 'right')
-                ? Math.abs(dx) : Math.abs(dy);
-            const cross = (direction === 'left' || direction === 'right')
-                ? Math.abs(dy) : Math.abs(dx);
+            const primary =
+                direction === 'left' || direction === 'right' ? Math.abs(dx) : Math.abs(dy);
+            const cross =
+                direction === 'left' || direction === 'right' ? Math.abs(dy) : Math.abs(dx);
 
             const score = primary + cross * 0.3;
             if (score < bestScore) {

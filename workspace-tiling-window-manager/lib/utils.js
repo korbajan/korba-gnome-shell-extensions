@@ -9,8 +9,7 @@
  */
 export function applyRects(rects) {
     for (const { window, x, y, width, height } of rects) {
-        if (window.maximized_horizontally || window.maximized_vertically)
-            window.unmaximize();
+        if (window.maximized_horizontally || window.maximized_vertically) window.unmaximize();
         window.move_resize_frame(false, x, y, width, height);
     }
 }

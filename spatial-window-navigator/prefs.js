@@ -7,21 +7,30 @@ import Gdk from 'gi://Gdk';
 import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 
-import {ExtensionPreferences, gettext as _} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
+import {
+    ExtensionPreferences,
+    gettext as _,
+} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 const MODIFIER_KEYS = new Set([
-    Gdk.KEY_Shift_L, Gdk.KEY_Shift_R,
-    Gdk.KEY_Control_L, Gdk.KEY_Control_R,
-    Gdk.KEY_Alt_L, Gdk.KEY_Alt_R,
-    Gdk.KEY_Super_L, Gdk.KEY_Super_R,
-    Gdk.KEY_Hyper_L, Gdk.KEY_Hyper_R,
-    Gdk.KEY_Meta_L, Gdk.KEY_Meta_R,
+    Gdk.KEY_Shift_L,
+    Gdk.KEY_Shift_R,
+    Gdk.KEY_Control_L,
+    Gdk.KEY_Control_R,
+    Gdk.KEY_Alt_L,
+    Gdk.KEY_Alt_R,
+    Gdk.KEY_Super_L,
+    Gdk.KEY_Super_R,
+    Gdk.KEY_Hyper_L,
+    Gdk.KEY_Hyper_R,
+    Gdk.KEY_Meta_L,
+    Gdk.KEY_Meta_R,
     Gdk.KEY_ISO_Level3_Shift,
 ]);
 
 class KeyCaptureWindow extends Gtk.Window {
     static [GObject.signals] = {
-        'captured': {param_types: [GObject.TYPE_STRING]},
+        captured: { param_types: [GObject.TYPE_STRING] },
     };
 
     static {
@@ -49,22 +58,27 @@ class KeyCaptureWindow extends Gtk.Window {
         });
         this.set_child(box);
 
-        box.append(new Gtk.Label({
-            label: _('Press the desired key combination'),
-            wrap: true,
-            justify: Gtk.Justification.CENTER,
-            css_classes: ['title-4'],
-        }));
+        box.append(
+            new Gtk.Label({
+                label: _('Press the desired key combination'),
+                wrap: true,
+                justify: Gtk.Justification.CENTER,
+                css_classes: ['title-4'],
+            }),
+        );
 
-        box.append(new Gtk.Label({
-            label: _('Press Escape to cancel'),
-            justify: Gtk.Justification.CENTER,
-            css_classes: ['dim-label'],
-        }));
+        box.append(
+            new Gtk.Label({
+                label: _('Press Escape to cancel'),
+                justify: Gtk.Justification.CENTER,
+                css_classes: ['dim-label'],
+            }),
+        );
 
         const controller = new Gtk.EventControllerKey();
         controller.connect('key-pressed', (c, keyval, keycode, state) =>
-            this._onKeyPressed(keyval, state));
+            this._onKeyPressed(keyval, state),
+        );
         this.add_controller(controller);
     }
 
@@ -74,8 +88,7 @@ class KeyCaptureWindow extends Gtk.Window {
             return Gdk.EVENT_STOP;
         }
 
-        if (MODIFIER_KEYS.has(keyval))
-            return Gdk.EVENT_STOP;
+        if (MODIFIER_KEYS.has(keyval)) return Gdk.EVENT_STOP;
 
         const mask = state & Gtk.accelerator_get_default_mod_mask();
         const accel = Gtk.accelerator_name(keyval, mask);
@@ -95,7 +108,7 @@ class KeybindingRow extends Adw.ActionRow {
     }
 
     constructor(title, subtitle, settings, key) {
-        super({title, subtitle, activatable: true});
+        super({ title, subtitle, activatable: true });
 
         this._settings = settings;
         this._key = key;
@@ -143,13 +156,13 @@ class NavigatorSettingsGroup extends Adw.PreferencesGroup {
     }
 
     constructor(settings) {
-        super({title: _('Keybindings')});
+        super({ title: _('Keybindings') });
 
         for (const [key, title, subtitle] of [
-            ['focus-window-left',  _('Focus Left'),  _('Focus the window to the left')],
+            ['focus-window-left', _('Focus Left'), _('Focus the window to the left')],
             ['focus-window-right', _('Focus Right'), _('Focus the window to the right')],
-            ['focus-window-up',    _('Focus Up'),    _('Focus the window above')],
-            ['focus-window-down',  _('Focus Down'),  _('Focus the window below')],
+            ['focus-window-up', _('Focus Up'), _('Focus the window above')],
+            ['focus-window-down', _('Focus Down'), _('Focus the window below')],
         ])
             this.add(new KeybindingRow(title, subtitle, settings, key));
     }

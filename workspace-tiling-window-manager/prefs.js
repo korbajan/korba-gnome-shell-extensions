@@ -99,7 +99,9 @@ function _buildShortcutsPage(settings) {
 
     const moveGroup = new Adw.PreferencesGroup({
         title: _('Swap Window'),
-        description: _('Swap the focused tile with its neighbour — tile positions stay fixed, window contents are exchanged'),
+        description: _(
+            'Swap the focused tile with its neighbour — tile positions stay fixed, window contents are exchanged',
+        ),
     });
     for (const [key, title] of [
         ['keybind-move-left', _('Swap Left')],
@@ -112,7 +114,9 @@ function _buildShortcutsPage(settings) {
 
     const resizeGroup = new Adw.PreferencesGroup({
         title: _('Tile Split Resize'),
-        description: _('Move the dividing line between the focused tile and its sibling by 5% per keypress'),
+        description: _(
+            'Move the dividing line between the focused tile and its sibling by 5% per keypress',
+        ),
     });
     for (const [key, title] of [
         ['keybind-resize-shrink', _('Shrink')],
@@ -217,7 +221,9 @@ class FloatRulesGroup extends Adw.PreferencesGroup {
     constructor(settings) {
         super({
             title: _('Window Classes That Always Float'),
-            description: _('Enter the WM class of the app to always open floating. To find it: focus the app, then run in a terminal: gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell --method org.gnome.Shell.Eval "global.display.focus_window.get_wm_class()"'),
+            description: _(
+                'Enter the WM class of the app to always open floating. To find it: focus the app, then run in a terminal: gdbus call --session --dest org.gnome.Shell --object-path /org/gnome/Shell --method org.gnome.Shell.Eval "global.display.focus_window.get_wm_class()"',
+            ),
         });
         this._settings = settings;
         this._rows = [];
