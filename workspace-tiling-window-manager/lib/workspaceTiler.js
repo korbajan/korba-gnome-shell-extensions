@@ -43,11 +43,12 @@ export class WorkspaceTiler {
      * @param {import('./layoutProvider.js').LayoutProvider} layout
      * @param {import('gi://Gio').Settings} settings
      */
-    constructor(workspaceIndex, monitorIndex, layout, settings) {
+    constructor(workspaceIndex, monitorIndex, layout, settings, pendingTile = null) {
         this.workspaceIndex = workspaceIndex;
         this.monitorIndex = monitorIndex;
         this.layout = layout;
         this._settings = settings;
+        this._pendingTile = pendingTile;
 
         /** @type {Set<import('gi://Meta').Window>} */
         this.floatingWindows = new Set();
@@ -69,6 +70,10 @@ export class WorkspaceTiler {
         if (!workspace) return;
 
         const workArea = workspace.get_work_area_for_monitor(this.monitorIndex);
+        if (this._settings.get_boolean('debug-logging'))
+            console.log('[workspace-tiling-window-manager] tiler init:',
+                `ws:${this.workspaceIndex} mon:${this.monitorIndex}`,
+                `workArea=(${workArea.x},${workArea.y} ${workArea.width}×${workArea.height})`);
         this.layout.init(this._settings, workArea);
 
         // Tile existing windows
@@ -97,6 +102,8 @@ export class WorkspaceTiler {
                     console.log(
                         '[workspace-tiling-window-manager] window removed:',
                         window.get_title(),
+                        '| tiler ws:', this.workspaceIndex, 'mon:', this.monitorIndex,
+                        '| win-mon:', window.get_monitor(),
                     );
             },
             this._signalIds,
@@ -110,7 +117,14 @@ export class WorkspaceTiler {
             'window-added',
             (_ws, window) => {
                 if (!shouldTile(window)) return;
+                if (this._settings.get_boolean('debug-logging'))
+                    console.log('[workspace-tiling-window-manager] window-added event:',
+                        window.get_title(),
+                        '| tiler ws:', this.workspaceIndex, 'mon:', this.monitorIndex,
+                        '| win-mon:', window.get_monitor(),
+                        '| realized:', window.get_compositor_private()?.realized ?? 'no-actor');
                 if (window.get_monitor() !== this.monitorIndex) return;
+                if (this._pendingTile?.has(window)) return;
                 if (this.floatingWindows.has(window)) return;
                 if (this.layout.hasWindow(window)) return;
 
@@ -162,6 +176,12 @@ export class WorkspaceTiler {
             this.floatWindow(window);
             return;
         }
+
+        // Re-fetch work area: the panel may not be registered at tiler init time
+        // (login race), so the stored area can have a stale y=0 instead of y≈32.
+        // Stale coords make Mutter's constraint engine re-place the window.
+        const ws = global.workspace_manager.get_workspace_by_index(this.workspaceIndex);
+        if (ws) applyRects(this.layout.updateWorkArea(ws.get_work_area_for_monitor(this.monitorIndex)));
 
         const r = window.get_frame_rect();
         this.savedRects.set(window, { x: r.x, y: r.y, width: r.width, height: r.height });
