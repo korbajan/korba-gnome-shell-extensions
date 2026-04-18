@@ -1,0 +1,22 @@
+# Meson build output
+build/
+
+# Node.js tooling
+node_modules/
+*/node_modules/
+
+# Logs
+*.log
+
+# macOS / Windows
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.tmp
+
+# Packaged extension zips
+*.zip

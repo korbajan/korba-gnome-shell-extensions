@@ -6,5 +6,6 @@
  "name": "Spatial Window Navigator",
  "description": "Navigate between windows on the current workspace using directional keybindings (arrow keys or vim-style hjkl).",
  "shell-version": [ "@shell_current@" ],
- "url": "@url@"
+ "url": "@url@",
+ "version": 1
 }

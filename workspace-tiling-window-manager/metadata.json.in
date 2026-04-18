@@ -1,0 +1,11 @@
+{
+ "extension-id": "@extension_id@",
+ "uuid": "@uuid@",
+ "settings-schema": "@gschemaname@",
+ "gettext-domain": "@gettext_domain@",
+ "name": "Workspace Tiling Window Manager",
+ "description": "Per-workspace dynamic window tiling using the Dwindle (spiral) layout, inspired by i3wm.",
+ "shell-version": [ "@shell_current@" ],
+ "url": "@url@",
+ "version": 1
+}

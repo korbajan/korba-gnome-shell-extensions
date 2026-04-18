@@ -1,0 +1,55 @@
+# ESLint configuration for korba-gnome-extensions
+# Based on gnome-shell-extensions lint conventions (Constitution Principle II)
+env:
+  es2022: true
+
+parserOptions:
+  ecmaVersion: 2022
+  sourceType: module
+
+globals:
+  # GNOME Shell / GJS runtime globals
+  global: readonly
+  imports: readonly
+  log: readonly
+  logError: readonly
+  print: readonly
+  printerr: readonly
+  console: readonly
+  # gettext
+  _: readonly
+  C_: readonly
+  N_: readonly
+  ngettext: readonly
+
+rules:
+  # Forbidden patterns
+  no-var: error
+  no-eval: error
+  no-implied-eval: error
+
+  # Best practices
+  prefer-const: error
+  eqeqeq: [error, always]
+  no-unused-vars:
+    - error
+    - argsIgnorePattern: "^_"
+      varsIgnorePattern: "^_"
+      caughtErrorsIgnorePattern: "^_"
+  no-undef: error
+  no-unreachable: error
+
+  # Style (matching GNOME Shell upstream conventions)
+  no-trailing-spaces: error
+  eol-last: [error, always]
+  no-multiple-empty-lines: [error, {max: 1}]
+
+overrides:
+  # Jasmine test files — add test runner globals
+  - files:
+      - "**/*.test.js"
+    env:
+      jasmine: true
+    globals:
+      # Allow accessing private fields in unit tests
+      global: readonly
