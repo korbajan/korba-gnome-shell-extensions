@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "0**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run tests in all extensions that have them
+        run: |
+          for dir in */; do
+            if [ -f "${dir}package.json" ] && node -e "process.exit(require('./${dir}package.json').scripts?.test ? 0 : 1)" 2>/dev/null; then
+              echo "=== Testing ${dir} ==="
+              npm ci --prefix "$dir"
+              npm test --prefix "$dir"
+            fi
+          done
