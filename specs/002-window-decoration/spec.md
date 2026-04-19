@@ -121,7 +121,7 @@ A user wants to configure all of the extension's behavior — default title bar 
 - **SC-002**: Changes to border thickness or any border color, made from the preferences window, take visible effect on every open managed window within 1 second of the user confirming the change.
 - **SC-003**: After the extension is disabled, 100% of the windows it previously modified return to their original title bar state and have no residual border drawn around them.
 - **SC-004**: During a 10-minute continuous usage session (opening, focusing, moving, resizing, and closing a mix of windows) the extension produces zero user-visible errors in the GNOME Shell journal and does not measurably grow its own memory usage beyond baseline.
-- **SC-005**: At least 95% of regular application windows opened while the extension is enabled receive the configured border and respect the configured title bar policy; the remaining five percent or fewer are the explicitly excluded categories (dialogs, popups, fullscreen, system UI, preferences window).
+- **SC-005**: Effectively all regular application windows opened while the extension is enabled receive the configured border and respect the configured title bar policy; the only windows that do not are the explicitly excluded categories (dialogs, popups, fullscreen, system UI, preferences window), which retain their original decorations.
 - **SC-006**: A first-time user can locate and change every exposed preference from the preferences window in under 2 minutes, without consulting external documentation.
 - **SC-007**: Enabling the extension alongside the existing `workspace-tiling-window-manager` and `spatial-window-navigator` extensions produces no regression in the acceptance scenarios of either existing extension.
 

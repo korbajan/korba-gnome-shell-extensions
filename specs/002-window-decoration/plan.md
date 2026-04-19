@@ -49,6 +49,8 @@ Add a new GNOME Shell 50 extension — `advanced-window-decoration` — that giv
 
 **Result**: no violations. `## Complexity Tracking` is omitted.
 
+**Constitution III — integration test satisfaction**: the `enable()` / `disable()` lifecycle is verified by (a) the lightweight `decorationManager.test.js` Jasmine spec (added as T015a) which uses a fake signal emitter to assert that every `connect()` in `enable()` is matched by a `disconnect()` in `disable()`, and (b) the documented Lifecycle Integrity manual scenario in `quickstart.md` §6. A full `@gnome-shell/mock` harness is deliberately not introduced — no sibling extension uses it, and the fake-emitter test covers the same signal-hygiene invariant Principle V relies on.
+
 ## Project Structure
 
 ### Documentation (this feature)

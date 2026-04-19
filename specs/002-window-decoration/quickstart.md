@@ -113,6 +113,13 @@ Run these after every `meson install` cycle. For each scenario, observe the resu
 5. Open any regular window.
 6. **Expected**: border is 6 px and blue.
 
+### Scenario — Lifecycle integrity (Constitution III, FR-011, FR-015)
+
+1. Enable the extension; open five windows; toggle two title bars; set a non-default border color.
+2. Disable: `gnome-extensions disable advanced-window-decoration@korbajan.github.com`.
+3. Re-enable: `gnome-extensions enable advanced-window-decoration@korbajan.github.com`.
+4. **Expected**: no journal errors, no orphaned border actors (`global.window_group` child count matches the pre-enable baseline), no duplicate keybinding (`<Super><Alt>d` triggers the toggle exactly once, not twice).
+
 ### Disable-restore invariant (FR-011, SC-003)
 
 1. Toggle the title bar off on two different windows using the shortcut.
