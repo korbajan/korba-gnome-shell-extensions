@@ -1,0 +1,147 @@
+# Implementation Plan: Advanced Window Decoration
+
+**Branch**: `002-window-decoration` | **Date**: 2026-04-18 | **Spec**: [spec.md](./spec.md)
+**Input**: Feature specification from `/specs/002-window-decoration/spec.md`
+
+## Summary
+
+Add a new GNOME Shell 50 extension — `advanced-window-decoration` — that gives the user a configurable keyboard shortcut to hide/show the focused window's title bar and draws a user-configurable border (thickness + RGBA color, separate focused-window color) around every managed window. The extension coexists non-invasively with the existing `workspace-tiling-window-manager` and `spatial-window-navigator` extensions: borders are painted **inside** the tile gap without altering tile geometry (FR-017), per-window toggles are live-only (FR-018), CSD apps that cannot be controlled fall back silently (FR-019), default-policy changes apply retroactively to open windows except those under an active per-window override (FR-021). Implementation uses standard GJS / Meta / St / Clutter APIs plus an Adw preferences window with `Gtk.ColorDialogButton` pickers (alpha-enabled, FR-020) and a single inline shortcut capture row.
+
+## Technical Context
+
+**Language/Version**: GJS / ES2022 (SpiderMonkey in GNOME Shell 50), ESM modules (`import` / `export`)
+**Primary Dependencies**: GJS built-ins (`gi://Meta`, `gi://Shell`, `gi://Clutter`, `gi://St`, `gi://Gio`, `gi://GLib`, `gi://GObject`, `gi://Adw`, `gi://Gtk`), resource-loaded `resource:///org/gnome/shell/ui/main.js` and `resource:///org/gnome/Shell/Extensions/js/extensions/extension.js` + `prefs.js`. **No npm runtime dependencies.** Jasmine is a dev-only test dependency (same pattern as `workspace-tiling-window-manager`).
+**Storage**: GSettings — schema `org.gnome.shell.extensions.advanced-window-decoration` at path `/org/gnome/shell/extensions/advanced-window-decoration/`, installed via Meson `gnome.post_install(glib_compile_schemas: true)`. Persisted by dconf across sessions (FR-013).
+**Testing**: Jasmine unit tests (`npm test`) for pure logic in `lib/` (window-filter rules, settings clamp/validate, per-window-override state machine). Manual smoke test on a live GNOME Shell 50 Wayland session covers visual behavior and the acceptance scenarios from `spec.md`.
+**Target Platform**: GNOME Shell 50 on Wayland (Linux desktop). X11-direct sessions are out of scope (matches CLAUDE.md + sibling extensions).
+**Project Type**: Single GNOME Shell extension (desktop-app). Installed alongside the two existing sibling extensions; no cross-extension runtime coupling.
+**Performance Goals**:
+- Title-bar toggle visible within **1 s** (SC-001).
+- Border setting change reflected on every open window within **1 s** (SC-002).
+- `enable()` completes within **50 ms** (Constitution V).
+- Idle CPU **< 0.5 %**; JS heap **< 8 MB** steady state (Constitution V).
+- Zero user-visible GNOME Shell journal errors during a 10-minute usage session (SC-004).
+
+**Constraints**:
+- Wayland-only.
+- Must NOT block the compositor main loop (Constitution V, FR-015).
+- Every `connect()` in `enable()` MUST be disconnected in `disable()` (Constitution V; CLAUDE.md).
+- Per-window signals stored in `Map<MetaWindow, Array<{obj,id}>>` and disconnected on `window-removed` to avoid the Wayland leak pattern documented in CLAUDE.md.
+- MUST NOT alter the tile rectangles produced by `workspace-tiling-window-manager` (FR-017).
+- MUST fall back **silently** on CSD windows the extension cannot control — no notifications, no dialogs, no user-visible log output (FR-019).
+- MUST restore every modified window to its original state on `disable()` / uninstall (FR-011, SC-003).
+
+**Scale/Scope**: Single user session; typical concurrent managed windows **< 50**; settings are user-scale (one profile per user).
+
+## Constitution Check
+
+*GATE: Must pass before Phase 0 research. Re-evaluated after Phase 1 design.*
+
+| Principle | How this plan satisfies it | Status |
+|-----------|---------------------------|--------|
+| **I. GNOME Shell Extension Patterns (NON-NEGOTIABLE)** | ESM `extension.js` exporting a default class extending `Extension` with `enable()`/`disable()`; `prefs.js` extending `ExtensionPreferences`; `metadata.json.in` with `shell-version`, `uuid`, `version`; GSettings namespace `org.gnome.shell.extensions.advanced-window-decoration`; Adw/Gtk 4 in prefs. Only GJS + GNOME platform libs imported; no npm runtime deps. | ✅ |
+| **II. Code Quality Standards** | Project-level ESLint + Prettier (already configured at repo root) enforce `no-var`, `prefer-const`, `eqeqeq`, formatting. New files follow the 400-line guideline; any over it carry a justification comment. Every new helper that can be pure is extracted into `lib/` and unit-tested. | ✅ |
+| **III. Test-First Development** | Jasmine specs written *before* the implementation modules they cover: `windowFilter.test.js`, `settingsClamp.test.js`, `windowRegistry.test.js`. Red → Green → Refactor documented in `tasks.md` (generated by `/speckit.tasks`). Acceptance scenarios from the spec map to automated unit tests or documented manual tests in `quickstart.md`. | ✅ |
+| **IV. User Experience Consistency** | All UI strings wrapped in `_()` from day one. Preferences window uses `AdwPreferencesWindow → AdwPreferencesPage → AdwPreferencesGroup`. No hard-coded pixel values except schema-exposed border thickness and the user-chosen colors. All interactive controls have `accessible-name` labels. Border color transitions are instant (no animation) — conforms to `gtk-enable-animations`. | ✅ |
+| **V. Performance Requirements** | `enable()` only reads settings, registers one keybinding, and connects a small fixed set of display signals (`window-created`, `notify::focus-window`, `changed::` on settings). Per-window actor and signals created lazily on `window-created`. Every `connect()` tracked in `Array<{obj,id}>` or `Map<MetaWindow,Array<{obj,id}>>` and released in `disable()`. No file I/O, no D-Bus in the hot path. | ✅ |
+| **VI. Extension Lifecycle & Compatibility** | `shell-version` array declares GNOME Shell 50 (templated via Meson like siblings). `disable()` restores every window to its captured original state (FR-011). Lifecycle integration is smoke-tested: enable → open windows → hide titlebar → change border color → disable → verify originals restored (SC-003). **No shared logic with sibling extensions**: the new extension writes its own, trivial inline shortcut-capture row in `prefs.js` (≈40 LOC) rather than importing `workspace-tiling-window-manager/lib/keybindingRow.js`, so VI's "MUST extract shared logic" clause is not triggered. | ✅ |
+| **VII. Simplicity & YAGNI** | One clearly scoped problem: *window decoration*. Per-application override list is explicitly out of scope (spec Assumptions). No speculative settings: every schema key maps 1:1 to an FR. No third-party npm deps bundled. | ✅ |
+
+**Result**: no violations. `## Complexity Tracking` is omitted.
+
+**Constitution III — integration test satisfaction**: the `enable()` / `disable()` lifecycle is verified by (a) the lightweight `decorationManager.test.js` Jasmine spec (added as T015a) which uses a fake signal emitter to assert that every `connect()` in `enable()` is matched by a `disconnect()` in `disable()`, and (b) the documented Lifecycle Integrity manual scenario in `quickstart.md` §6. A full `@gnome-shell/mock` harness is deliberately not introduced — no sibling extension uses it, and the fake-emitter test covers the same signal-hygiene invariant Principle V relies on.
+
+## Project Structure
+
+### Documentation (this feature)
+
+```text
+specs/002-window-decoration/
+├── plan.md                   # This file (/speckit.plan output)
+├── research.md               # Phase 0 output
+├── data-model.md             # Phase 1 output
+├── quickstart.md             # Phase 1 output
+├── contracts/
+│   └── gsettings-schema.md   # Phase 1 output (GSettings schema contract)
+├── checklists/
+│   └── requirements.md       # Created by /speckit.specify, updated by /speckit.clarify
+└── spec.md                   # Created by /speckit.specify + /speckit.clarify
+```
+
+### Source Code (repository root)
+
+```text
+korba-gnome-extensions/
+├── meson.build                               # add 'advanced-window-decoration' to extensions array
+├── package.json                              # root ESLint + Prettier (no change — globs already cover new dir)
+├── .eslintrc.yml                             # inherited
+├── .prettierrc                               # inherited
+├── spatial-window-navigator/                 # unchanged
+├── workspace-tiling-window-manager/          # unchanged
+└── advanced-window-decoration/               # NEW
+    ├── extension.js                          # Extension subclass: enable()/disable() + shortcut registration
+    ├── prefs.js                              # ExtensionPreferences subclass: Adw prefs window
+    ├── metadata.json.in                      # configured by meson
+    ├── meson.build                           # install_data for extension + schema + lib/
+    ├── org.gnome.shell.extensions.advanced-window-decoration.gschema.xml
+    ├── package.json                          # Jasmine dev dep (same as sibling)
+    ├── spec/
+    │   └── support/
+    │       └── jasmine.json                  # Jasmine runner config
+    └── lib/
+        ├── decorationManager.js              # top-level coordinator owned by extension.js
+        ├── titlebarController.js             # hide/show titlebar per window (Meta API interaction)
+        ├── borderController.js               # per-window St.Widget border actor lifecycle
+        ├── windowRegistry.js                 # Map<MetaWindow, ManagedWindowState>
+        ├── windowRegistry.test.js
+        ├── windowFilter.js                   # shouldManage(window) predicate (dialog/popup/fullscreen/prefs exclusion)
+        ├── windowFilter.test.js
+        ├── settingsClamp.js                  # clampThickness(), parseRgba(), formatRgba()
+        └── settingsClamp.test.js
+```
+
+**Structure Decision**: the new extension follows the **same per-extension directory pattern** already used by the two siblings. No shared top-level `lib/` is introduced because (per Constitution VI bullet 5) no genuinely shared logic exists between this extension and the siblings — the inline shortcut-capture row is trivial and purpose-specific. This keeps Phase 2 task scope tight and avoids touching the sibling extensions.
+
+## Phase 0 — Outline & Research
+
+The spec itself no longer carries any `[NEEDS CLARIFICATION]` markers (`/speckit.clarify` resolved five). Phase 0 therefore focuses on **technical decisions** the plan needs before Phase 1 design: the *how* of title-bar hiding on Wayland, the *how* of drawing a per-window border actor, and the *how* of the sibling-extension coexistence invariants. The consolidated output lives in [research.md](./research.md); summary of decisions is embedded in this plan's Technical Context above.
+
+Research topics:
+
+1. Title-bar hide/show mechanism on GNOME Shell 50 Wayland (SSD vs. CSD; Meta API surface; graceful fallback contract for FR-019).
+2. Per-window border actor: St.Widget vs. Clutter.Actor, parent group choice, geometry-tracking signals, z-order, focused/unfocused color swap.
+3. Outer-position preservation when toggling title bar (FR-002) — whether Mutter keeps outer rect or whether the extension must compensate with `move_resize_frame`.
+4. Coexistence invariants with `workspace-tiling-window-manager` (FR-017): signal-set isolation and the border-overlays-gap contract.
+5. Alpha-aware color picker in Adw/Gtk 4 prefs (FR-020) — `Gtk.ColorDialogButton` + `Gtk.ColorDialog(with_alpha = true)`.
+6. Inline shortcut-capture row pattern for a single shortcut (avoids pulling in `keybindingRow.js` from the sibling).
+7. Per-window override state machine (FR-018, FR-021): when the user has toggled a window via shortcut, a subsequent change to the default policy must *skip* that window until it closes.
+
+**Output**: [research.md](./research.md), with every topic recorded as *Decision / Rationale / Alternatives considered*.
+
+## Phase 1 — Design & Contracts
+
+Prerequisite: `research.md` complete.
+
+1. **Data model** → [data-model.md](./data-model.md):
+   - `DecorationProfile` (settings bag): fields, types, defaults, ranges, validation rules.
+   - `ManagedWindow` (per-window in-memory record): captured original state + current applied state + override flag + signal handle list.
+   - State machine for the per-window override flag (FR-018, FR-021).
+
+2. **Interface contracts** → [contracts/](./contracts/):
+   - `gsettings-schema.md` — the canonical schema contract (key, type, default, range, summary, description) mirroring the XML that lives at the extension root. This is the extension's public interface: users script it via `gsettings`, tests assert against it, and the preferences window is generated from it.
+   - No other public interfaces exist (no exported JS API, no D-Bus, no file format).
+
+3. **Quickstart** → [quickstart.md](./quickstart.md):
+   - Build + install steps reused from CLAUDE.md.
+   - Minimum smoke test covering acceptance scenarios 1.1, 2.1, 3.1, and the disable-restore invariant.
+   - Pointers to per-FR manual-test notes.
+
+4. **Agent context update**: run `.specify/scripts/bash/update-agent-context.sh claude` after the artifacts above exist, so `CLAUDE.md` picks up the new extension without disturbing its manual sections.
+
+## Constitution Check — after Phase 1 re-evaluation
+
+Re-check performed after writing research.md, data-model.md, contracts/, and quickstart.md: **still no violations**. No new dependencies introduced; all modules are small pure-logic helpers plus two GObject-aware controllers; per-window state is bounded and released on window close / disable.
+
+## Complexity Tracking
+
+*Not applicable — no Constitution violations to justify.*

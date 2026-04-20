@@ -23,6 +23,7 @@ endif
 extensions = [
   'spatial-window-navigator',
   'workspace-tiling-window-manager',
+  'advanced-window-decoration',
 ]
 
 foreach e : extensions

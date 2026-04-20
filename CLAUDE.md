@@ -164,3 +164,10 @@ TilingManager
 - `_lastLeaf` tracks the insertion target for the next `addWindow()` call
 - All debug logs gated: `if (this._settings.get_boolean('debug-logging')) console.log(...)`
 - `applyRects()` lives in `lib/utils.js` — always unmaximizes before resizing
+
+## Active Technologies
+- GJS / ES2022 (SpiderMonkey in GNOME Shell 50), ESM modules (`import` / `export`) + GJS built-ins (`gi://Meta`, `gi://Shell`, `gi://Clutter`, `gi://St`, `gi://Gio`, `gi://GLib`, `gi://GObject`, `gi://Adw`, `gi://Gtk`), resource-loaded `resource:///org/gnome/shell/ui/main.js` and `resource:///org/gnome/Shell/Extensions/js/extensions/extension.js` + `prefs.js`. **No npm runtime dependencies.** Jasmine is a dev-only test dependency (same pattern as `workspace-tiling-window-manager`). (002-window-decoration)
+- GSettings — schema `org.gnome.shell.extensions.advanced-window-decoration` at path `/org/gnome/shell/extensions/advanced-window-decoration/`, installed via Meson `gnome.post_install(glib_compile_schemas: true)`. Persisted by dconf across sessions (FR-013). (002-window-decoration)
+
+## Recent Changes
+- 002-window-decoration: Added GJS / ES2022 (SpiderMonkey in GNOME Shell 50), ESM modules (`import` / `export`) + GJS built-ins (`gi://Meta`, `gi://Shell`, `gi://Clutter`, `gi://St`, `gi://Gio`, `gi://GLib`, `gi://GObject`, `gi://Adw`, `gi://Gtk`), resource-loaded `resource:///org/gnome/shell/ui/main.js` and `resource:///org/gnome/Shell/Extensions/js/extensions/extension.js` + `prefs.js`. **No npm runtime dependencies.** Jasmine is a dev-only test dependency (same pattern as `workspace-tiling-window-manager`).
