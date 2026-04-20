@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.advanced-window-decoration"
+          path="/org/gnome/shell/extensions/advanced-window-decoration/">
+
+    <!-- ── Title Bar ─────────────────────────────────────────────────── -->
+
+    <key name="default-titlebar-policy" type="s">
+      <default>"visible"</default>
+      <summary>Default title bar visibility for newly created windows</summary>
+      <description>
+        Determines whether the extension hides or shows the title bar as each
+        new regular window is mapped. Valid values: "visible" or "hidden".
+        Applies retroactively to all open windows without an active per-window
+        override (FR-003, FR-004, FR-021).
+      </description>
+    </key>
+
+    <!-- ── Border ────────────────────────────────────────────────────── -->
+
+    <key name="border-thickness" type="u">
+      <default>2</default>
+      <range min="0" max="32"/>
+      <summary>Window border thickness in logical pixels</summary>
+      <description>
+        Thickness of the decorative border drawn around each managed window's
+        outer edge. A value of 0 renders no visible border while keeping all
+        other features active (FR-005, FR-008, FR-014).
+      </description>
+    </key>
+
+    <key name="border-color" type="s">
+      <default>"rgba(128,128,128,0.80)"</default>
+      <summary>Border color for unfocused (background) windows</summary>
+      <description>
+        RGBA color of the border drawn around windows that are not currently
+        focused. Format: "rgba(&lt;0–255&gt;,&lt;0–255&gt;,&lt;0–255&gt;,&lt;0.00–1.00&gt;)"
+        (FR-005, FR-007, FR-020).
+      </description>
+    </key>
+
+    <key name="focused-border-color" type="s">
+      <default>"rgba(53,132,228,1.00)"</default>
+      <summary>Border color for the focused window</summary>
+      <description>
+        RGBA color of the border drawn around the currently focused window.
+        Same format as border-color. When equal to border-color, all windows
+        appear identical (FR-006, FR-007, FR-020).
+      </description>
+    </key>
+
+    <!-- ── Keyboard Shortcut ──────────────────────────────────────────── -->
+
+    <key name="toggle-titlebar-shortcut" type="as">
+      <default>["&lt;Super&gt;&lt;Alt&gt;d"]</default>
+      <summary>Keyboard shortcut to toggle the focused window's title bar</summary>
+      <description>
+        Configurable accelerator for the per-window title bar toggle action.
+        Stored as an array so it can be passed directly to
+        Main.wm.addKeybinding() (FR-001, FR-012).
+      </description>
+    </key>
+
+    <!-- ── Debug ─────────────────────────────────────────────────────── -->
+
+    <key name="debug-logging" type="b">
+      <default>false</default>
+      <summary>Enable debug logging</summary>
+      <description>
+        When true, emits structured debug output via console.log for decoration
+        decisions. Output visible via journalctl. Zero overhead when false
+        (FR-015).
+      </description>
+    </key>
+
+  </schema>
+</schemalist>

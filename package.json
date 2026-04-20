@@ -7,9 +7,9 @@
     "prettier": "^3.3.0"
   },
   "scripts": {
-    "lint": "eslint workspace-tiling-window-manager/ spatial-window-navigator/",
-    "lint:fix": "eslint --fix workspace-tiling-window-manager/ spatial-window-navigator/",
-    "format": "prettier --write \"workspace-tiling-window-manager/**/*.js\" \"spatial-window-navigator/**/*.js\"",
-    "format:check": "prettier --check \"workspace-tiling-window-manager/**/*.js\" \"spatial-window-navigator/**/*.js\""
+    "lint": "eslint workspace-tiling-window-manager/ spatial-window-navigator/ advanced-window-decoration/",
+    "lint:fix": "eslint --fix workspace-tiling-window-manager/ spatial-window-navigator/ advanced-window-decoration/",
+    "format": "prettier --write \"workspace-tiling-window-manager/**/*.js\" \"spatial-window-navigator/**/*.js\" \"advanced-window-decoration/**/*.js\"",
+    "format:check": "prettier --check \"workspace-tiling-window-manager/**/*.js\" \"spatial-window-navigator/**/*.js\" \"advanced-window-decoration/**/*.js\""
   }
 }
