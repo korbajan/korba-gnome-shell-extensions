@@ -18,8 +18,8 @@
 
 ```bash
 # 1. Clone and enter the repository
-git clone https://github.com/korbajan/korba-gnome-extensions.git
-cd korba-gnome-extensions
+git clone https://github.com/korbajan/korba-gnome-shell-extensions.git
+cd korba-gnome-shell-extensions
 
 # 2. Configure Meson build
 meson setup build
