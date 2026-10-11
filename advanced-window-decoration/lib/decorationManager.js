@@ -31,6 +31,11 @@ export class DecorationManager {
         this._connect(display, 'window-created', (_d, win) => this._onWindowCreated(win));
         this._connect(display, 'notify::focus-window', () => this._onFocusChanged());
 
+        const wsManager = globalThis.global?.workspace_manager;
+        if (wsManager) {
+            this._connect(wsManager, 'workspace-switched', () => this._onWorkspaceSwitched());
+        }
+
         // Only wire GJS-dependent keybinding and settings signals in a real shell environment.
         if (!this._display) this._enableShellFeatures();
 
@@ -118,7 +123,13 @@ export class DecorationManager {
                 thickness,
                 this._getColor(),
                 this._getFocusedColor(),
-            );
+            ).then(() => {
+                // Hide immediately if this window is not on the active workspace.
+                const activeWs = globalThis.global?.workspace_manager?.get_active_workspace();
+                if (activeWs && !win.located_on_workspace?.(activeWs)) {
+                    BorderController.hideBorderActor(record);
+                }
+            });
         }
 
         const addHandle = (obj, signal, handler) => {
@@ -137,6 +148,19 @@ export class DecorationManager {
             });
             record.signalHandles.push({ obj: workspace, id });
         }
+    }
+
+    _onWorkspaceSwitched() {
+        const activeWs = globalThis.global?.workspace_manager?.get_active_workspace();
+        if (!activeWs) return;
+        this._registry.forEach((win, record) => {
+            if (win.located_on_workspace?.(activeWs)) {
+                BorderController.showBorderActor(record);
+                BorderController.repositionActor(win, record);
+            } else {
+                BorderController.hideBorderActor(record);
+            }
+        });
     }
 
     _onWindowRemoved(win) {

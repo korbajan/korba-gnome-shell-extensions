@@ -4,7 +4,6 @@
 
 import Gdk from 'gi://Gdk';
 import Gio from 'gi://Gio';
-import GObject from 'gi://GObject';
 import Gtk from 'gi://Gtk';
 import Adw from 'gi://Adw';
 
@@ -43,19 +42,13 @@ function _buildBehaviourPage(settings) {
     });
     group.add(row);
 
-    settings.bind_with_mapping(
-        'default-titlebar-policy',
-        row,
-        'active',
-        Gio.SettingsBindFlags.DEFAULT,
-        value => value.get_string() === 'hidden',
-        value => {
-            const v = new GObject.Value();
-            v.init(GObject.TYPE_STRING);
-            v.set_string(value ? 'hidden' : 'visible');
-            return v;
-        },
-    );
+    row.set_active(settings.get_string('default-titlebar-policy') === 'hidden');
+    row.connect('notify::active', () => {
+        settings.set_string('default-titlebar-policy', row.active ? 'hidden' : 'visible');
+    });
+    settings.connect('changed::default-titlebar-policy', () => {
+        row.set_active(settings.get_string('default-titlebar-policy') === 'hidden');
+    });
 
     return page;
 }
@@ -114,7 +107,6 @@ function _buildColorRow(settings, key, title, subtitle) {
     const dialog = new Gtk.ColorDialog({ with_alpha: true, title });
     const button = new Gtk.ColorDialogButton({
         dialog,
-        accessible_name: title,
         valign: Gtk.Align.CENTER,
     });
     row.add_suffix(button);
@@ -162,7 +154,6 @@ function _buildShortcutPage(settings, prefWindow) {
 
     const setBtn = new Gtk.Button({
         label: _('Set shortcut…'),
-        accessible_name: _('Set title-bar toggle shortcut'),
         valign: Gtk.Align.CENTER,
     });
 

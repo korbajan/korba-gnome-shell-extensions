@@ -11,9 +11,9 @@ export class WindowRegistry {
         const rect = metaWindow.get_frame_rect();
         this._map.set(metaWindow, {
             window: metaWindow,
-            originalDecorated: metaWindow.get_decorated(),
+            originalDecorated: metaWindow.decorated,
             originalFrameRect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
-            currentDecorated: metaWindow.get_decorated(),
+            currentDecorated: metaWindow.decorated,
             userOverrode: false,
             borderActor: null,
             signalHandles: [],
@@ -47,7 +47,11 @@ export class WindowRegistry {
     // Restores every window to its original decoration state and clears the registry.
     disableAll() {
         for (const [win, record] of this._map) {
-            win.set_decorated(record.originalDecorated);
+            try {
+                win.set({ decorated: record.originalDecorated });
+            } catch (_e) {
+                /* Wayland read-only */
+            }
             for (const { obj, id } of record.signalHandles) obj.disconnect(id);
         }
         this._map.clear();

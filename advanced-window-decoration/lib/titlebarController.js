@@ -2,14 +2,6 @@
 //
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-// gi://Meta is only available inside GNOME Shell; guard so the module is
-// importable in the Node.js/Jasmine test runner without error.
-let _Meta = null;
-async function _getMeta() {
-    if (!_Meta) _Meta = (await import('gi://Meta')).default;
-    return _Meta;
-}
-
 export function hide(metaWindow, registry) {
     if (!metaWindow) return;
     const record = registry?.get(metaWindow);
@@ -29,7 +21,7 @@ export function show(metaWindow, registry) {
 export function toggle(metaWindow, registry) {
     if (!metaWindow) return;
     const record = registry?.get(metaWindow);
-    const isCurrentlyDecorated = record ? record.currentDecorated : metaWindow.get_decorated();
+    const isCurrentlyDecorated = record ? record.currentDecorated : metaWindow.decorated;
     if (isCurrentlyDecorated) {
         hide(metaWindow, registry);
     } else {
@@ -48,13 +40,17 @@ export function applyPolicy(metaWindow, policy, registry) {
 function _applyDecorated(metaWindow, decorated, record) {
     const before = metaWindow.get_frame_rect();
 
-    // Unmaximize before resizing — maximized windows ignore move_resize_frame
-    // (CLAUDE.md Wayland gotcha). Access Meta lazily to avoid GJS import at load time.
+    // In GNOME 50, unmaximize() takes no arguments.
     if (metaWindow.maximized_horizontally || metaWindow.maximized_vertically) {
-        _getMeta().then(Meta => metaWindow.unmaximize(Meta.MaximizeFlags.BOTH));
+        metaWindow.unmaximize();
     }
 
-    metaWindow.set_decorated(decorated);
+    // MetaWindowWayland.decorated is read-only; catch and bail for native Wayland windows.
+    try {
+        metaWindow.set({ decorated });
+    } catch (_e) {
+        return;
+    }
     if (record) record.currentDecorated = decorated;
 
     // Re-issue outer position so the window does not jump (FR-002).

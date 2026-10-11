@@ -1,11 +1,12 @@
 import { WindowRegistry } from './windowRegistry.js';
 
 function makeWindow(decorated = true) {
-    return {
-        get_decorated: () => decorated,
-        set_decorated: jasmine.createSpy('set_decorated'),
+    const win = {
+        decorated,
         get_frame_rect: () => ({ x: 100, y: 50, width: 800, height: 600 }),
     };
+    win.set = props => Object.assign(win, props);
+    return win;
 }
 
 describe('WindowRegistry', () => {
@@ -131,9 +132,11 @@ describe('WindowRegistry', () => {
             const win2 = makeWindow(false);
             registry.attach(win1);
             registry.attach(win2);
+            win1.decorated = false;
+            win2.decorated = true;
             registry.disableAll();
-            expect(win1.set_decorated).toHaveBeenCalledWith(true);
-            expect(win2.set_decorated).toHaveBeenCalledWith(false);
+            expect(win1.decorated).toBe(true);
+            expect(win2.decorated).toBe(false);
         });
 
         it('clears the registry after disable', () => {
