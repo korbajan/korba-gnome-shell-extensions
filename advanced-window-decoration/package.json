@@ -1,0 +1,12 @@
+{
+  "name": "advanced-window-decoration-tests",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "jasmine": "^5.13.0"
+  },
+  "scripts": {
+    "test": "jasmine"
+  }
+}

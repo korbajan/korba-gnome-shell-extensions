@@ -1,0 +1,11 @@
+{
+ "extension-id": "@extension_id@",
+ "uuid": "@uuid@",
+ "settings-schema": "@gschemaname@",
+ "gettext-domain": "@gettext_domain@",
+ "name": "Advanced Window Decoration",
+ "description": "Toggle window title bars on demand and add a configurable border around every managed window.",
+ "shell-version": [ "@shell_current@" ],
+ "url": "@url@",
+ "version": 1
+}
