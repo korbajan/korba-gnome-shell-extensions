@@ -7,7 +7,7 @@ conf.set('uuid', uuid)
 conf.set('gschemaname', 'org.gnome.shell.extensions.' + e)
 conf.set('gettext_domain', meson.project_name())
 conf.set('shell_current', shell_version)
-conf.set('url', 'https://github.com/korbajan/korba-gnome-extensions')
+conf.set('url', 'https://github.com/korbajan/korba-gnome-shell-extensions')
 
 metadata = configure_file(
   input: 'metadata.json.in',
